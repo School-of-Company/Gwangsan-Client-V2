@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { ImagePlus, Pencil, X } from 'lucide-react';
 import { Button } from '@zaemoru/react';
-import { toast } from 'sonner';
 import {
   noticeSchema,
   useCreateNotice,
@@ -61,22 +60,25 @@ export function NoticeWriter() {
   }, [existing]);
 
   const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.currentTarget.files) return;
-    const files = Array.from(e.currentTarget.files);
+    const input = e.currentTarget;
+    if (!input.files) return;
+    const files = Array.from(input.files);
     if (files.length === 0) return;
-    const newIds = await uploadImages.mutateAsync(files);
-    if (newIds.length !== files.length) {
-      toast.error('이미지 업로드 응답이 올바르지 않아요.');
+
+    try {
+      const newIds = await uploadImages.mutateAsync(files);
+      setImages((prev) => [
+        ...prev,
+        ...files.map((file, i) => ({
+          id: newIds[i]!,
+          url: URL.createObjectURL(file),
+        })),
+      ]);
+    } catch (_error) {
       return;
+    } finally {
+      input.value = '';
     }
-    setImages((prev) => [
-      ...prev,
-      ...files.map((file, i) => ({
-        id: newIds[i]!,
-        url: URL.createObjectURL(file),
-      })),
-    ]);
-    e.currentTarget.value = '';
   };
 
   const removeImage = (id: number) =>
