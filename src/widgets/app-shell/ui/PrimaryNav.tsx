@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useTransition } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Tab } from '@zaemoru/react';
 
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
 export function PrimaryNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const [, startTransition] = useTransition();
 
   const items = useMemo(
     () => NAV_ITEMS.map(({ href, label }) => ({ value: href, label })),
@@ -27,14 +28,22 @@ export function PrimaryNav() {
     return matched?.href;
   }, [pathname]);
 
+  useEffect(() => {
+    NAV_ITEMS.forEach((item) => router.prefetch(item.href));
+  }, [router]);
+
   return (
-    <Tab
-      items={items}
-      value={active}
-      variant="underline"
-      onChange={(value) => {
-        if (value && value !== pathname) router.push(value);
-      }}
-    />
+    <div className="min-w-max">
+      <Tab
+        items={items}
+        value={active}
+        variant="underline"
+        onChange={(value) => {
+          if (value && value !== pathname) {
+            startTransition(() => router.push(value));
+          }
+        }}
+      />
+    </div>
   );
 }
