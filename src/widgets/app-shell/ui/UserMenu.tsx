@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, LogOut, UserX } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { ChevronDown, Loader2, LogOut, UserX } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/shared/lib/cn';
 import { api } from '@/shared/lib/api';
@@ -14,6 +15,16 @@ export function UserMenu() {
   const [open, setOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  const deleteAccount = useMutation({
+    mutationFn: () => api.delete('/member'),
+    onSuccess: () => {
+      clearAuth();
+      toast.success('계정이 삭제되었어요.');
+      router.replace(authConfig.signInPage);
+    },
+    onError: () => toast.error('계정 삭제에 실패했어요.'),
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -28,17 +39,6 @@ export function UserMenu() {
     clearAuth();
     toast.success('로그아웃되었어요.');
     router.replace(authConfig.signInPage);
-  };
-
-  const handleDeleteAccount = async () => {
-    try {
-      await api.delete('/member');
-      clearAuth();
-      toast.success('계정이 삭제되었어요.');
-      router.replace(authConfig.signInPage);
-    } catch {
-      toast.error('계정 삭제에 실패했어요.');
-    }
   };
 
   return (
@@ -97,19 +97,21 @@ export function UserMenu() {
               <button
                 type="button"
                 onClick={() => setConfirmDelete(false)}
-                className="rounded-lg border border-gray-200 px-4 py-2 text-body4 text-gray-700 hover:bg-gray-50"
+                disabled={deleteAccount.isPending}
+                className="rounded-lg border border-gray-200 px-4 py-2 text-body4 text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 취소
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setConfirmDelete(false);
-                  handleDeleteAccount();
-                }}
-                className="rounded-lg bg-error-500 px-4 py-2 text-body4 font-medium text-white hover:opacity-90"
+                onClick={() => deleteAccount.mutate()}
+                disabled={deleteAccount.isPending}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-error-500 px-4 py-2 text-body4 font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                탈퇴하기
+                {deleteAccount.isPending && (
+                  <Loader2 size={14} className="animate-spin" />
+                )}
+                {deleteAccount.isPending ? '탈퇴 중…' : '탈퇴하기'}
               </button>
             </div>
           </div>

@@ -171,6 +171,7 @@ export function PasswordResetForm() {
               variant="secondary"
               size="large"
               onClick={() => setStep('phone')}
+              disabled={verifyCode.isPending || sendCode.isPending}
             >
               이전
             </Button>
@@ -191,9 +192,10 @@ export function PasswordResetForm() {
           <button
             type="button"
             onClick={() => sendCode.mutate(phoneNumber)}
-            className="text-center text-body5 text-gray-600 underline-offset-4 hover:text-main-700 hover:underline"
+            disabled={sendCode.isPending || verifyCode.isPending}
+            className="text-center text-body5 text-gray-600 underline-offset-4 transition hover:text-main-700 hover:underline disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
           >
-            인증번호 다시 받기
+            {sendCode.isPending ? '발송 중…' : '인증번호 다시 받기'}
           </button>
         </div>
       )}

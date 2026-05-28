@@ -116,6 +116,7 @@ export function NoticeDetailView({ id }: NoticeDetailViewProps) {
                 variant="secondary"
                 size="medium"
                 onClick={() => setConfirmDelete(false)}
+                disabled={deleteNotice.isPending}
               >
                 취소
               </Button>

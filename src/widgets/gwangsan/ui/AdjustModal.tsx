@@ -140,7 +140,12 @@ export function AdjustModal({ open, onClose, member, mode }: AdjustModalProps) {
         )}
 
         <div className="mt-6 flex justify-end gap-2">
-          <Button variant="secondary" size="medium" onClick={onClose}>
+          <Button
+            variant="secondary"
+            size="medium"
+            onClick={onClose}
+            disabled={adjust.isPending}
+          >
             취소
           </Button>
           <Button

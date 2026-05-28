@@ -93,7 +93,12 @@ export function StatusDialog({
         </div>
 
         <div className="mt-6 flex justify-end gap-2">
-          <Button variant="secondary" size="medium" onClick={onClose}>
+          <Button
+            variant="secondary"
+            size="medium"
+            onClick={onClose}
+            disabled={mutation.isPending}
+          >
             취소
           </Button>
           <Button

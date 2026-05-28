@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, CheckCircle2, X } from 'lucide-react';
+import { Bell, CheckCircle2, Loader2, X } from 'lucide-react';
 import { Button } from '@zaemoru/react';
 import {
   REPORT_TYPE_KOR,
@@ -33,6 +33,13 @@ export function AlertsPanel() {
   const reports = data?.reports ?? [];
   const tradeCancels = data?.tradeCancels ?? [];
   const total = signups.length + reports.length + tradeCancels.length;
+
+  // react-query's useMutation tracks only the latest invocation, so we
+  // disable every same-kind action while one is in flight and show the
+  // spinner on the targeted row only.
+  const pendingAcceptId = accept.isPending ? accept.variables : undefined;
+  const pendingCancelId = cancel.isPending ? cancel.variables : undefined;
+  const pendingDismissId = dismiss.isPending ? dismiss.variables : undefined;
 
   return (
     <Card className="flex flex-col">
@@ -71,9 +78,12 @@ export function AlertsPanel() {
                     primaryAction={{
                       label: '승인',
                       onClick: () => accept.mutate(s.id),
-                      loading: accept.isPending,
+                      loading: pendingAcceptId === s.id,
+                      disabled: accept.isPending,
                     }}
                     onDismiss={() => dismiss.mutate(s.id)}
+                    dismissing={pendingDismissId === s.id}
+                    dismissDisabled={dismiss.isPending}
                   />
                 ))}
               </Section>
@@ -93,6 +103,8 @@ export function AlertsPanel() {
                       formatDateTime(r.createdAt),
                     ]}
                     onDismiss={() => dismiss.mutate(r.id)}
+                    dismissing={pendingDismissId === r.id}
+                    dismissDisabled={dismiss.isPending}
                   />
                 ))}
               </Section>
@@ -116,9 +128,12 @@ export function AlertsPanel() {
                     primaryAction={{
                       label: '취소 처리',
                       onClick: () => cancel.mutate(t.id),
-                      loading: cancel.isPending,
+                      loading: pendingCancelId === t.id,
+                      disabled: cancel.isPending,
                     }}
                     onDismiss={() => dismiss.mutate(t.id)}
+                    dismissing={pendingDismissId === t.id}
+                    dismissDisabled={dismiss.isPending}
                   />
                 ))}
               </Section>
@@ -154,8 +169,15 @@ interface AlertRowProps {
   title: string;
   description?: string;
   meta: string[];
-  primaryAction?: { label: string; onClick: () => void; loading?: boolean };
+  primaryAction?: {
+    label: string;
+    onClick: () => void;
+    loading?: boolean;
+    disabled?: boolean;
+  };
   onDismiss: () => void;
+  dismissing?: boolean;
+  dismissDisabled?: boolean;
 }
 
 function AlertRow({
@@ -164,6 +186,8 @@ function AlertRow({
   meta,
   primaryAction,
   onDismiss,
+  dismissing,
+  dismissDisabled,
 }: AlertRowProps) {
   return (
     <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-4 transition hover:bg-gray-50">
@@ -188,9 +212,14 @@ function AlertRow({
           type="button"
           aria-label="닫기"
           onClick={onDismiss}
-          className="-mr-1 -mt-1 rounded-full p-1.5 text-gray-500 hover:bg-gray-200/70"
+          disabled={dismissDisabled}
+          className="-mr-1 -mt-1 rounded-full p-1.5 text-gray-500 transition hover:bg-gray-200/70 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <X size={16} />
+          {dismissing ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <X size={16} />
+          )}
         </button>
       </div>
       {primaryAction && (
@@ -200,7 +229,7 @@ function AlertRow({
             size="small"
             onClick={primaryAction.onClick}
             loading={primaryAction.loading}
-            disabled={primaryAction.loading}
+            disabled={primaryAction.disabled ?? primaryAction.loading}
           >
             {primaryAction.label}
           </Button>
