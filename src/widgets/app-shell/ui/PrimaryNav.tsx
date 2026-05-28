@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/shared/lib/cn';
+import { useMemo } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Tab } from '@zaemoru/react';
 
 const NAV_ITEMS = [
   { href: '/main', label: '대시보드', match: ['/main', '/profile'] },
@@ -13,27 +13,28 @@ const NAV_ITEMS = [
 
 export function PrimaryNav() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const items = useMemo(
+    () => NAV_ITEMS.map(({ href, label }) => ({ value: href, label })),
+    [],
+  );
+
+  const active = useMemo(() => {
+    const matched = NAV_ITEMS.find((item) =>
+      item.match.some((p) => pathname.startsWith(p)),
+    );
+    return matched?.href;
+  }, [pathname]);
 
   return (
-    <nav aria-label="주 메뉴" className="flex items-center gap-1">
-      {NAV_ITEMS.map(({ href, label, match }) => {
-        const active = match.some((p) => pathname.startsWith(p));
-        return (
-          <Link
-            key={href}
-            href={href}
-            aria-current={active ? 'page' : undefined}
-            className={cn(
-              'relative rounded-lg px-3 py-2 text-body4 font-medium transition-colors',
-              active
-                ? 'text-main-700 bg-main-100'
-                : 'text-gray-700 hover:bg-gray-50',
-            )}
-          >
-            {label}
-          </Link>
-        );
-      })}
-    </nav>
+    <Tab
+      items={items}
+      value={active}
+      variant="underline"
+      onChange={(value) => {
+        if (value && value !== pathname) router.push(value);
+      }}
+    />
   );
 }

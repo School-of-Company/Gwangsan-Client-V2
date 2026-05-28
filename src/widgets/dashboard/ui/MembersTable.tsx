@@ -50,7 +50,7 @@ export function MembersTable() {
   };
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex min-h-0 flex-col">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Users size={18} className="text-main-600" />
@@ -87,7 +87,7 @@ export function MembersTable() {
         )}
       </CardBody>
 
-      <div className="border-t border-gray-100">
+      <div className="flex min-h-0 flex-1 flex-col border-t border-gray-100">
         {isLoading ? (
           <SkeletonRows />
         ) : !data || data.length === 0 ? (
@@ -97,7 +97,7 @@ export function MembersTable() {
             description="검색어와 지점 필터를 다시 확인해주세요."
           />
         ) : (
-          <div className="max-h-[600px] overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             <table className="w-full">
               <thead className="sticky top-0 z-[1] bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)]">
                 <tr className="text-left text-caption text-gray-600">

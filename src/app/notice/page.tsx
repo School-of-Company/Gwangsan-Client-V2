@@ -6,18 +6,20 @@ export const metadata = { title: '공지 · 광산 어드민' };
 
 export default function NoticePage() {
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
+    <div className="flex h-[calc(100vh-8rem)] flex-col gap-4">
+      <header className="flex-shrink-0">
         <h1 className="text-titleMedium2 text-gray-900">공지</h1>
-        <p className="text-body4 text-gray-600">
+        <p className="text-body5 text-gray-600">
           지점별로 공지를 작성하고 관리해요.
         </p>
-      </div>
+      </header>
 
       <Suspense
-        fallback={<div className="h-64 animate-pulse rounded-2xl bg-gray-50" />}
+        fallback={
+          <div className="flex-1 animate-pulse rounded-2xl bg-gray-50" />
+        }
       >
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,_420px)_minmax(0,_1fr)]">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-5 lg:grid-cols-[minmax(0,_420px)_minmax(0,_1fr)]">
           <NoticeList />
           <NoticeWriter />
         </div>

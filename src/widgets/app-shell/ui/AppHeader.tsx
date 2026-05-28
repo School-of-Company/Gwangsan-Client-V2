@@ -13,12 +13,16 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-gray-100 bg-white/90 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-6 px-6">
-        <div className="flex items-center gap-8">
+      <div className="mx-auto grid h-16 max-w-[1400px] grid-cols-[1fr_auto_1fr] items-center gap-6 px-6">
+        <div className="flex items-center">
           <Logo />
+        </div>
+        <div className="flex justify-center">
           <PrimaryNav />
         </div>
-        <UserMenu />
+        <div className="flex justify-end">
+          <UserMenu />
+        </div>
       </div>
     </header>
   );

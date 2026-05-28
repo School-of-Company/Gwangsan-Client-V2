@@ -29,7 +29,7 @@ export function NoticeList() {
   }, [data, keyword]);
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex min-h-0 flex-col">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Megaphone size={18} className="text-main-600" />
@@ -40,7 +40,7 @@ export function NoticeList() {
         </div>
       </CardHeader>
 
-      <div className="border-b border-gray-100 px-6 py-3">
+      <div className="flex-shrink-0 border-b border-gray-100 px-6 py-3">
         <SearchInput
           value={keyword}
           onChange={setKeyword}
@@ -48,7 +48,7 @@ export function NoticeList() {
         />
       </div>
 
-      <div className="max-h-[calc(100vh-280px)] min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {isLoading ? (
           <div className="flex flex-col gap-2">
             {Array.from({ length: 4 }).map((_, i) => (

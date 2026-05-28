@@ -125,7 +125,7 @@ export function NoticeWriter() {
   const submitting = createNotice.isPending || editNotice.isPending;
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex min-h-0 flex-col">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Pencil size={18} className="text-main-600" />
@@ -147,7 +147,7 @@ export function NoticeWriter() {
         )}
       </CardHeader>
 
-      <CardBody className="space-y-5">
+      <CardBody className="min-h-0 flex-1 overflow-y-auto">
         <div className="flex flex-col gap-5">
           <Field
             label="제목"

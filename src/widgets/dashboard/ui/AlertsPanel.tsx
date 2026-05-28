@@ -42,7 +42,7 @@ export function AlertsPanel() {
   const pendingDismissId = dismiss.isPending ? dismiss.variables : undefined;
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex min-h-0 flex-col">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Bell size={18} className="text-main-600" />
@@ -53,7 +53,7 @@ export function AlertsPanel() {
         </div>
       </CardHeader>
 
-      <div className="flex max-h-[680px] flex-col gap-5 overflow-y-auto px-6 py-5">
+      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-6 py-5">
         {isLoading ? (
           <SkeletonList />
         ) : total === 0 ? (
