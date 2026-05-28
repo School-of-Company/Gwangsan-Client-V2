@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { ImagePlus, Pencil, X } from 'lucide-react';
 import { Button } from '@zaemoru/react';
+import { toast } from 'sonner';
 import {
   noticeSchema,
   useCreateNotice,
@@ -64,10 +65,14 @@ export function NoticeWriter() {
     const files = Array.from(e.currentTarget.files);
     if (files.length === 0) return;
     const newIds = await uploadImages.mutateAsync(files);
+    if (newIds.length !== files.length) {
+      toast.error('이미지 업로드 응답이 올바르지 않아요.');
+      return;
+    }
     setImages((prev) => [
       ...prev,
       ...files.map((file, i) => ({
-        id: newIds[i] ?? 0,
+        id: newIds[i]!,
         url: URL.createObjectURL(file),
       })),
     ]);
