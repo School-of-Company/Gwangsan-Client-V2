@@ -11,7 +11,6 @@ import {
 } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 import { Download } from 'lucide-react';
-import { Button } from '@zaemoru/react';
 import {
   STATS_PERIODS,
   downloadTradeExcel,
@@ -200,7 +199,7 @@ export function StatsView() {
               </div>
               <div className="flex flex-col gap-2">
                 {labels.map((label, i) => {
-                  const value = values[i];
+                  const value = values[i] ?? 0;
                   const pct = totalCount
                     ? Math.round((value / totalCount) * 100)
                     : 0;
@@ -213,7 +212,8 @@ export function StatsView() {
                         <span
                           className="h-3 w-3 shrink-0 rounded-sm"
                           style={{
-                            backgroundColor: PALETTE[i % PALETTE.length],
+                            backgroundColor:
+                              PALETTE[i % PALETTE.length] ?? PALETTE[0],
                           }}
                           aria-hidden
                         />

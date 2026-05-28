@@ -20,6 +20,7 @@ import { cn } from '@/shared/lib/cn';
 
 const TITLE_MAX = 100;
 const CONTENT_MAX = 1000;
+type ErrorField = 'title' | 'content' | 'placeId';
 
 interface ImagePreview {
   id: number;
@@ -37,7 +38,7 @@ export function NoticeWriter() {
   const [content, setContent] = useState('');
   const [placeId, setPlaceId] = useState<string>('');
   const [images, setImages] = useState<ImagePreview[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<ErrorField, string>>>({});
 
   const { data: existing } = useNotice(editingId);
   const uploadImages = useUploadNoticeImages();
@@ -66,7 +67,7 @@ export function NoticeWriter() {
     setImages((prev) => [
       ...prev,
       ...files.map((file, i) => ({
-        id: newIds[i],
+        id: newIds[i] ?? 0,
         url: URL.createObjectURL(file),
       })),
     ]);
@@ -93,9 +94,9 @@ export function NoticeWriter() {
     };
     const parsed = noticeSchema.safeParse(payload);
     if (!parsed.success) {
-      const next: Record<string, string> = {};
+      const next: Partial<Record<ErrorField, string>> = {};
       for (const i of parsed.error.issues) {
-        const key = i.path[0] as string;
+        const key = i.path[0] as ErrorField;
         if (!next[key]) next[key] = i.message;
       }
       setErrors(next);
@@ -151,7 +152,7 @@ export function NoticeWriter() {
         <div className="flex flex-col gap-5">
           <Field
             label="제목"
-            error={errors.title}
+            error={errors['title']}
             hint={`${title.length} / ${TITLE_MAX}`}
           >
             <input
@@ -160,7 +161,7 @@ export function NoticeWriter() {
               placeholder="제목을 입력하세요"
               className={cn(
                 'h-11 w-full rounded-xl border bg-white px-3 text-body4 text-gray-900 transition placeholder:text-gray-400 focus:outline-none focus:ring-2',
-                errors.title
+                errors['title']
                   ? 'border-error-500 focus:ring-red-100'
                   : 'border-gray-200 focus:border-main-500 focus:ring-main-100',
               )}
@@ -169,7 +170,7 @@ export function NoticeWriter() {
 
           <Field
             label="내용"
-            error={errors.content}
+            error={errors['content']}
             hint={`${content.length} / ${CONTENT_MAX}`}
           >
             <textarea
@@ -181,7 +182,7 @@ export function NoticeWriter() {
               rows={6}
               className={cn(
                 'w-full rounded-xl border bg-white px-3 py-2.5 text-body4 text-gray-900 transition placeholder:text-gray-400 focus:outline-none focus:ring-2',
-                errors.content
+                errors['content']
                   ? 'border-error-500 focus:ring-red-100'
                   : 'border-gray-200 focus:border-main-500 focus:ring-main-100',
               )}
@@ -195,9 +196,9 @@ export function NoticeWriter() {
             placeholder="대상 지점을 선택해주세요"
             options={placeOptions}
           />
-          {errors.placeId && (
+          {errors['placeId'] && (
             <p className="-mt-3 text-caption text-error-500">
-              {errors.placeId}
+              {errors['placeId']}
             </p>
           )}
 

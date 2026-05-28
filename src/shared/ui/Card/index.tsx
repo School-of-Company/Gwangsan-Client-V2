@@ -1,5 +1,5 @@
 import { cn } from '@/shared/lib/cn';
-import { HTMLAttributes } from 'react';
+import type { HTMLAttributes } from 'react';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   hoverable?: boolean;

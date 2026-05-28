@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import axios from 'axios';
 
 function joinUrl(base: string, path: string) {
@@ -11,7 +11,7 @@ export async function PATCH(request: NextRequest) {
   const refreshToken =
     request.headers.get('refreshtoken') ?? request.headers.get('RefreshToken');
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const apiUrl = process.env['NEXT_PUBLIC_API_URL'];
 
   if (!apiUrl) {
     return NextResponse.json({ error: 'API URL missing' }, { status: 500 });
