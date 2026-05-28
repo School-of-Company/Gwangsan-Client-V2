@@ -84,8 +84,7 @@ export function NoticeWriter() {
     setErrors({});
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = () => {
     const payload: NoticeForm = {
       title,
       content,
@@ -149,7 +148,7 @@ export function NoticeWriter() {
       </CardHeader>
 
       <CardBody className="space-y-5">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
+        <div className="flex flex-col gap-5">
           <Field
             label="제목"
             error={errors.title}
@@ -250,16 +249,16 @@ export function NoticeWriter() {
           </div>
 
           <Button
-            type="submit"
             variant="primary"
             size="large"
             fullWidth
             loading={submitting}
             disabled={submitting}
+            onClick={submit}
           >
             {isEditing ? '수정하기' : '게시하기'}
           </Button>
-        </form>
+        </div>
       </CardBody>
     </Card>
   );

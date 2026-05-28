@@ -11,8 +11,7 @@ import {
   type SignInForm as SignInFormData,
 } from '@/entities/user';
 import { saveRole, saveTokens } from '@/shared/lib/auth';
-import { authConfig } from '@/shared/config/auth';
-import { isAdminRole } from '@/shared/config/auth';
+import { authConfig, isAdminRole } from '@/shared/config/auth';
 
 type FieldErrors = Partial<Record<keyof SignInFormData, string>>;
 
@@ -31,8 +30,7 @@ export function SignInForm() {
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = () => {
     const parsed = signInSchema.safeParse(values);
     if (!parsed.success) {
       const next: FieldErrors = {};
@@ -60,8 +58,18 @@ export function SignInForm() {
 
   const submitting = signIn.isPending;
 
+  // zaemoru Button renders an inner <button> inside Shadow DOM, so a form's
+  // native submit doesn't bubble out. We trigger submit explicitly on click
+  // and on Enter while focused inside the field group.
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !submitting) {
+      e.preventDefault();
+      submit();
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
+    <div className="flex flex-col gap-5" onKeyDown={handleKeyDown}>
       <div className="flex flex-col gap-3">
         <TextField
           label="별칭"
@@ -87,12 +95,12 @@ export function SignInForm() {
       </div>
 
       <Button
-        type="submit"
         variant="primary"
         size="large"
         fullWidth
         disabled={submitting}
         loading={submitting}
+        onClick={submit}
       >
         로그인
       </Button>
@@ -105,6 +113,6 @@ export function SignInForm() {
           비밀번호를 잊으셨나요?
         </Link>
       </div>
-    </form>
+    </div>
   );
 }

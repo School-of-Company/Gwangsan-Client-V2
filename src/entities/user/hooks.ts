@@ -12,10 +12,16 @@ import {
 
 const messageFromError = (err: unknown, fallback: string): string => {
   if (err instanceof AxiosError) {
-    return (
-      (err.response?.data as { message?: string } | undefined)?.message ??
-      fallback
-    );
+    const serverMessage = (err.response?.data as { message?: string } | undefined)
+      ?.message;
+    if (serverMessage) return serverMessage;
+    if (err.response?.status) return `${fallback} (${err.response.status})`;
+    if (err.code === 'ERR_NETWORK') {
+      return 'API 서버에 연결할 수 없어요. 네트워크 또는 NEXT_PUBLIC_API_URL을 확인해주세요.';
+    }
+    if (err.code === 'ECONNABORTED') {
+      return '요청 시간이 초과되었어요. 잠시 후 다시 시도해주세요.';
+    }
   }
   return fallback;
 };

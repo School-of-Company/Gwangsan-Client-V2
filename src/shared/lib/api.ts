@@ -17,6 +17,13 @@ import { setCookie } from './cookies';
 
 export const baseURL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
+if (typeof window !== 'undefined' && !baseURL) {
+  // eslint-disable-next-line no-console
+  console.error(
+    '[gwangsan] NEXT_PUBLIC_API_URL is not set. Create .env.local with NEXT_PUBLIC_API_URL=... and restart the dev server.',
+  );
+}
+
 export const api = axios.create({
   baseURL,
   timeout: 10_000,
