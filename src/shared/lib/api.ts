@@ -30,8 +30,10 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// refreshClient hits our own Next API route at `/api/auth/reissue`
+// (which proxies to the backend's `auth/reissue`). It must NOT inherit
+// the backend baseURL — that would produce `/api/api/auth/reissue`.
 const refreshClient = axios.create({
-  baseURL,
   timeout: 10_000,
   headers: { 'Content-Type': 'application/json' },
 });

@@ -30,10 +30,12 @@
   --zm-color-primary-subtle: var(--zm-color-brand-50);
   --zm-color-on-primary: #ffffff;
 
-  /* Override the focus ring (defaults to blue) so keyboard focus
-     uses brand green. Danger ring stays red. */
+  /* Override the focus ring + input border-focus (both default to
+     blue) so keyboard focus and TextField active state use brand green.
+     Danger ring stays red. */
   --zm-shadow-focus-ring: 0 0 0 3px rgba(143, 195, 29, 0.32);
   --zm-focus-ring: var(--zm-shadow-focus-ring);
+  --zm-color-border-focus: var(--zm-color-brand-500);
 }
 
 html,
