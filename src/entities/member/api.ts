@@ -3,12 +3,14 @@ import type { MemberRole } from '@/shared/constants/role';
 import type { Member, MemberStatus } from '@/shared/types/member';
 
 export interface MemberFilter {
+  headId?: number;
   nickname?: string;
   placeId?: number;
 }
 
 export const listMembers = async (filter: MemberFilter): Promise<Member[]> => {
   const params: Record<string, string | number> = {};
+  if (filter.headId) params['headId'] = filter.headId;
   if (filter.nickname) params['nickname'] = filter.nickname;
   if (filter.placeId) params['placeId'] = filter.placeId;
   const { data } = await api.get<Member[]>('/member/all', { params });

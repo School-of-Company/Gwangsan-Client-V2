@@ -1,15 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import {
-  ArcElement,
-  Chart as ChartJS,
-  Legend,
-  Tooltip,
-  type ChartData,
-  type ChartOptions,
-} from 'chart.js';
-import { Doughnut } from 'react-chartjs-2';
+import dynamic from 'next/dynamic';
 import { Download } from 'lucide-react';
 import {
   STATS_PERIODS,
@@ -21,15 +13,21 @@ import {
 import { Card, CardBody, CardHeader } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Select } from '@/shared/ui/Select';
-import {
-  PLACES,
-  headOptions,
-  placeOptions,
-} from '@/shared/constants/place';
+import { PLACES, headOptions, placeOptions } from '@/shared/constants/place';
 import { formatNumber } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+const StatsDoughnutChart = dynamic(
+  () => import('./StatsDoughnutChart').then((mod) => mod.StatsDoughnutChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full items-center justify-center">
+        <div className="h-48 w-48 animate-pulse rounded-full bg-gray-100" />
+      </div>
+    ),
+  },
+);
 
 const PALETTE = [
   '#8FC31D',
@@ -80,37 +78,8 @@ export function StatsView() {
     return { labels: [] as string[], values: [] as number[], totalCount: 0 };
   }, [isPlaceMode, placeStats.data, headStats.data, placeId]);
 
-  const chartData: ChartData<'doughnut'> = {
-    labels,
-    datasets: [
-      {
-        label: '거래 수',
-        data: values,
-        backgroundColor: labels.map((_, i) => PALETTE[i % PALETTE.length]!),
-        borderWidth: 0,
-        hoverOffset: 6,
-      },
-    ],
-  };
-
-  const chartOptions: ChartOptions<'doughnut'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '60%',
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: { padding: 16, boxWidth: 10, boxHeight: 10, color: '#4F4F51' },
-      },
-      tooltip: {
-        callbacks: {
-          label: (ctx) => `${ctx.label}: ${formatNumber(ctx.parsed)} 건`,
-        },
-      },
-    },
-  };
-
   const loading = isPlaceMode ? placeStats.isLoading : headStats.isLoading;
+  const fetching = isPlaceMode ? placeStats.isFetching : headStats.isFetching;
   const hasData = values.length > 0 && values.some((v) => v > 0);
 
   const handleExcel = () => downloadTradeExcel(period, headId);
@@ -172,6 +141,9 @@ export function StatsView() {
             <span className="rounded-full bg-main-100 px-2 py-0.5 text-caption font-semibold text-main-700">
               총 {formatNumber(totalCount)}건
             </span>
+            {fetching && !loading ? (
+              <span className="text-caption text-gray-500">갱신 중</span>
+            ) : null}
           </div>
           <button
             type="button"
@@ -195,7 +167,11 @@ export function StatsView() {
           ) : (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,_1fr)_minmax(0,_280px)] lg:items-center">
               <div className="relative h-[420px]">
-                <Doughnut data={chartData} options={chartOptions} />
+                <StatsDoughnutChart
+                  labels={labels}
+                  values={values}
+                  colors={PALETTE}
+                />
               </div>
               <div className="flex flex-col gap-2">
                 {labels.map((label, i) => {
@@ -208,7 +184,7 @@ export function StatsView() {
                       key={label}
                       className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 px-3 py-2.5"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex min-w-0 items-center gap-2">
                         <span
                           className="h-3 w-3 shrink-0 rounded-sm"
                           style={{

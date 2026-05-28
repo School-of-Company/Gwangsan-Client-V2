@@ -25,6 +25,7 @@ type ErrorField = 'title' | 'content' | 'placeId';
 interface ImagePreview {
   id: number;
   url: string;
+  objectUrl?: boolean;
 }
 
 export function NoticeWriter() {
@@ -34,6 +35,8 @@ export function NoticeWriter() {
   const isEditing = !!editingId;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isMountedRef = useRef(false);
+  const objectUrlsRef = useRef(new Set<string>());
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [placeId, setPlaceId] = useState<string>('');
@@ -54,10 +57,21 @@ export function NoticeWriter() {
         (existing.images ?? []).map((img) => ({
           id: img.imageId,
           url: img.imageUrl,
+          objectUrl: false,
         })),
       );
     }
   }, [existing]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    const objectUrls = objectUrlsRef.current;
+    return () => {
+      isMountedRef.current = false;
+      objectUrls.forEach((url) => URL.revokeObjectURL(url));
+      objectUrls.clear();
+    };
+  }, []);
 
   const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.currentTarget;
@@ -67,13 +81,18 @@ export function NoticeWriter() {
 
     try {
       const newIds = await uploadImages.mutateAsync(files);
-      setImages((prev) => [
-        ...prev,
-        ...files.map((file, i) => ({
+      if (!isMountedRef.current) return;
+
+      const previews = files.map((file, i) => {
+        const url = URL.createObjectURL(file);
+        objectUrlsRef.current.add(url);
+        return {
           id: newIds[i]!,
-          url: URL.createObjectURL(file),
-        })),
-      ]);
+          url,
+          objectUrl: true,
+        };
+      });
+      setImages((prev) => [...prev, ...previews]);
     } catch (_error) {
       return;
     } finally {
@@ -82,9 +101,20 @@ export function NoticeWriter() {
   };
 
   const removeImage = (id: number) =>
-    setImages((prev) => prev.filter((img) => img.id !== id));
+    setImages((prev) => {
+      const target = prev.find((img) => img.id === id);
+      if (target?.objectUrl) {
+        URL.revokeObjectURL(target.url);
+        objectUrlsRef.current.delete(target.url);
+      }
+      return prev.filter((img) => img.id !== id);
+    });
 
   const reset = () => {
+    objectUrlsRef.current.forEach((url) => {
+      URL.revokeObjectURL(url);
+    });
+    objectUrlsRef.current.clear();
     setTitle('');
     setContent('');
     setPlaceId('');
@@ -182,9 +212,7 @@ export function NoticeWriter() {
           >
             <textarea
               value={content}
-              onChange={(e) =>
-                setContent(e.target.value.slice(0, CONTENT_MAX))
-              }
+              onChange={(e) => setContent(e.target.value.slice(0, CONTENT_MAX))}
               placeholder="내용을 입력하세요"
               rows={6}
               className={cn(

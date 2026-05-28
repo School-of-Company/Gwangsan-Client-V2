@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users } from 'lucide-react';
+import { Loader2, Users } from 'lucide-react';
 import { useMembers } from '@/entities/member';
 import { Card, CardBody, CardHeader } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
@@ -13,24 +13,21 @@ import { Select } from '@/shared/ui/Select';
 import { placeLabel, placeOptions } from '@/shared/constants/place';
 import { formatNumber, formatPhone } from '@/shared/lib/format';
 import { getRole } from '@/shared/lib/auth';
+import { useDebouncedValue } from '@/shared/lib/debounce';
 
 const ALL_PLACES = '__all__';
 
 export function MembersTable() {
   const router = useRouter();
+  const [, startTransition] = useTransition();
   const [nickname, setNickname] = useState('');
-  const [debouncedNickname, setDebouncedNickname] = useState('');
   const [placeId, setPlaceId] = useState<string>(ALL_PLACES);
   const [role, setRole] = useState<string | null>(null);
+  const debouncedNickname = useDebouncedValue(nickname.trim(), 250);
 
   useEffect(() => {
     setRole(getRole());
   }, []);
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedNickname(nickname.trim()), 250);
-    return () => clearTimeout(t);
-  }, [nickname]);
 
   const filter = useMemo(
     () => ({
@@ -40,7 +37,7 @@ export function MembersTable() {
     [debouncedNickname, placeId],
   );
 
-  const { data, isLoading } = useMembers(filter);
+  const { data, isLoading, isFetching } = useMembers(filter);
 
   const showPlaceFilter = role !== 'ROLE_PLACE_ADMIN';
 
@@ -55,6 +52,9 @@ export function MembersTable() {
         <div className="flex items-center gap-2">
           <Users size={18} className="text-main-600" />
           <h2 className="text-body1 text-gray-900">회원 목록</h2>
+          {isFetching && !isLoading ? (
+            <Loader2 size={14} className="animate-spin text-gray-400" />
+          ) : null}
           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-caption font-semibold text-gray-700">
             {data ? formatNumber(data.length) : '…'}
           </span>
@@ -79,10 +79,7 @@ export function MembersTable() {
             value={placeId === ALL_PLACES ? undefined : placeId}
             onChange={(v) => setPlaceId(v || ALL_PLACES)}
             placeholder="전체 지점"
-            options={[
-              { value: '', label: '전체 지점' },
-              ...placeOptions,
-            ]}
+            options={[{ value: '', label: '전체 지점' }, ...placeOptions]}
           />
         )}
       </CardBody>
@@ -97,8 +94,8 @@ export function MembersTable() {
             description="검색어와 지점 필터를 다시 확인해주세요."
           />
         ) : (
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <table className="w-full">
+          <div className="min-h-0 flex-1 overflow-auto">
+            <table className="w-full min-w-[760px]">
               <thead className="sticky top-0 z-[1] bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)]">
                 <tr className="text-left text-caption text-gray-600">
                   <th className="px-6 py-3 font-medium">회원</th>
@@ -112,7 +109,11 @@ export function MembersTable() {
                 {data.map((m) => (
                   <tr
                     key={m.memberId}
-                    onClick={() => router.push(`/profile/${m.memberId}`)}
+                    onClick={() =>
+                      startTransition(() =>
+                        router.push(`/profile/${m.memberId}`),
+                      )
+                    }
                     className="cursor-pointer border-t border-gray-100 transition hover:bg-gray-50"
                   >
                     <td className="px-6 py-3">
@@ -122,10 +123,10 @@ export function MembersTable() {
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-body4 font-semibold text-gray-900">
+                            <span className="truncate text-body4 font-semibold text-gray-900">
                               {m.nickname}
                             </span>
-                            <span className="text-caption text-gray-500">
+                            <span className="shrink-0 text-caption text-gray-500">
                               · {m.name}
                             </span>
                           </div>
@@ -141,7 +142,7 @@ export function MembersTable() {
                     <td className="px-3 py-3">
                       <StatusBadge status={m.status} />
                     </td>
-                    <td className="px-3 py-3 text-right text-body4 font-semibold text-gray-900 tabular-nums">
+                    <td className="px-3 py-3 text-right text-body4 font-semibold tabular-nums text-gray-900">
                       {formatNumber(m.gwangsan ?? 0)}
                     </td>
                     <td className="px-6 py-3 text-body5 text-gray-700">

@@ -52,7 +52,7 @@ export function UserMenu() {
           'flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-body4 font-medium text-gray-800 transition hover:border-gray-300 hover:bg-gray-50',
         )}
       >
-        관리자
+        <span className="hidden sm:inline">관리자</span>
         <ChevronDown
           size={16}
           className={cn(

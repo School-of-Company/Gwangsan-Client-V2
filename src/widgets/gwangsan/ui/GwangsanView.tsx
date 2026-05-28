@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Coins, Minus, Plus, Users } from 'lucide-react';
+import { Coins, Loader2, Minus, Plus, Users } from 'lucide-react';
 import { useMembers } from '@/entities/member';
 import { Card, CardHeader } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
@@ -10,6 +10,7 @@ import { Select } from '@/shared/ui/Select';
 import { RoleBadge } from '@/shared/ui/RoleBadge';
 import { headOptions, placeOptions } from '@/shared/constants/place';
 import { formatNumber, formatPhone } from '@/shared/lib/format';
+import { useDebouncedValue } from '@/shared/lib/debounce';
 import type { Member } from '@/shared/types/member';
 import { AdjustModal } from './AdjustModal';
 
@@ -19,17 +20,22 @@ export function GwangsanView() {
   const [head, setHead] = useState<string>(headOptions[0]?.value ?? '');
   const [placeId, setPlaceId] = useState<string>(ALL);
   const [nickname, setNickname] = useState('');
-  const [modal, setModal] = useState<{ member: Member; mode: 'add' | 'subtract' } | null>(null);
+  const [modal, setModal] = useState<{
+    member: Member;
+    mode: 'add' | 'subtract';
+  } | null>(null);
+  const debouncedNickname = useDebouncedValue(nickname.trim(), 250);
 
   const filter = useMemo(
     () => ({
-      nickname: nickname.trim() || undefined,
+      headId: head ? Number(head) : undefined,
+      nickname: debouncedNickname || undefined,
       placeId: placeId !== ALL ? Number(placeId) : undefined,
     }),
-    [nickname, placeId],
+    [debouncedNickname, head, placeId],
   );
 
-  const { data, isLoading } = useMembers(filter);
+  const { data, isLoading, isFetching } = useMembers(filter);
 
   const total = useMemo(
     () => data?.reduce((sum, m) => sum + (m.gwangsan ?? 0), 0) ?? 0,
@@ -76,6 +82,9 @@ export function GwangsanView() {
             <h2 className="text-body1 text-gray-900">
               회원 {data ? formatNumber(data.length) : '…'}명
             </h2>
+            {isFetching && !isLoading ? (
+              <Loader2 size={14} className="animate-spin text-gray-400" />
+            ) : null}
           </div>
           <div className="flex items-center gap-1.5 rounded-full bg-main-100 px-3 py-1 text-body5 font-semibold text-main-700">
             <Coins size={14} />
@@ -99,8 +108,8 @@ export function GwangsanView() {
             description="다른 본점이나 지점을 선택해보세요."
           />
         ) : (
-          <div className="max-h-[640px] overflow-y-auto border-t border-gray-100">
-            <table className="w-full">
+          <div className="max-h-[640px] overflow-auto border-t border-gray-100">
+            <table className="w-full min-w-[720px]">
               <thead className="sticky top-0 z-[1] bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)]">
                 <tr className="text-left text-caption text-gray-600">
                   <th className="px-6 py-3 font-medium">회원</th>
@@ -120,12 +129,12 @@ export function GwangsanView() {
                         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-main-100 text-body4 font-semibold text-main-700">
                           {m.nickname.slice(0, 1) || '?'}
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-body4 font-semibold text-gray-900">
+                            <span className="truncate text-body4 font-semibold text-gray-900">
                               {m.nickname}
                             </span>
-                            <span className="text-caption text-gray-500">
+                            <span className="shrink-0 text-caption text-gray-500">
                               · {m.name}
                             </span>
                           </div>
@@ -138,7 +147,7 @@ export function GwangsanView() {
                     <td className="px-3 py-3">
                       <RoleBadge role={m.role} />
                     </td>
-                    <td className="px-3 py-3 text-right text-body3 font-semibold text-gray-900 tabular-nums">
+                    <td className="px-3 py-3 text-right text-body3 font-semibold tabular-nums text-gray-900">
                       {formatNumber(m.gwangsan ?? 0)}
                     </td>
                     <td className="px-6 py-3 text-right">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { getHeadStats, getPlaceStats, type StatsPeriod } from './api';
 
 export const statsKeys = {
@@ -15,6 +15,7 @@ export const useHeadStats = (period: StatsPeriod, headId: number | undefined) =>
     queryKey: statsKeys.head(period, headId ?? 0),
     queryFn: () => getHeadStats(period, headId as number),
     enabled: !!headId,
+    placeholderData: keepPreviousData,
   });
 
 export const usePlaceStats = (
@@ -25,4 +26,5 @@ export const usePlaceStats = (
     queryKey: statsKeys.place(period, placeId ?? 0),
     queryFn: () => getPlaceStats(period, placeId as number),
     enabled: !!placeId,
+    placeholderData: keepPreviousData,
   });
