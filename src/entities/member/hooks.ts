@@ -1,6 +1,11 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   adjustMemberGwangsan,
@@ -23,6 +28,7 @@ export const useMembers = (filter: MemberFilter) =>
   useQuery({
     queryKey: memberKeys.list(filter),
     queryFn: () => listMembers(filter),
+    placeholderData: keepPreviousData,
   });
 
 export const useMember = (memberId: string | undefined) =>
