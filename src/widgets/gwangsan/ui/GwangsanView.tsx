@@ -28,10 +28,11 @@ export function GwangsanView() {
 
   const filter = useMemo(
     () => ({
+      headId: head ? Number(head) : undefined,
       nickname: debouncedNickname || undefined,
       placeId: placeId !== ALL ? Number(placeId) : undefined,
     }),
-    [debouncedNickname, placeId],
+    [debouncedNickname, head, placeId],
   );
 
   const { data, isLoading, isFetching } = useMembers(filter);
