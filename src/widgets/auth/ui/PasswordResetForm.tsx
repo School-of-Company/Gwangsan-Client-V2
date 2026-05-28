@@ -134,8 +134,8 @@ export function PasswordResetForm() {
             placeholder="01012345678"
             value={phoneNumber}
             onInput={(v) => setPhoneNumber(v.replace(/\D/g, ''))}
-            invalid={!!errors['phoneNumber']}
-            errorMessage={errors['phoneNumber']}
+            invalid={!!errors.phoneNumber}
+            errorMessage={errors.phoneNumber}
             helperText="가입하신 휴대폰 번호로 인증번호를 보내드려요."
             size="large"
           />
@@ -161,8 +161,8 @@ export function PasswordResetForm() {
             placeholder="6자리 숫자"
             value={code}
             onInput={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))}
-            invalid={!!errors['code']}
-            errorMessage={errors['code']}
+            invalid={!!errors.code}
+            errorMessage={errors.code}
             helperText={`${phoneNumber}로 보낸 인증번호를 입력해주세요.`}
             size="large"
           />
@@ -209,8 +209,8 @@ export function PasswordResetForm() {
             placeholder="영문, 숫자 포함 8자 이상"
             value={newPassword}
             onInput={(v) => setNewPassword(v)}
-            invalid={!!errors['newPassword']}
-            errorMessage={errors['newPassword']}
+            invalid={!!errors.newPassword}
+            errorMessage={errors.newPassword}
             size="large"
           />
           <TextField
@@ -219,8 +219,8 @@ export function PasswordResetForm() {
             placeholder="새 비밀번호를 다시 입력해주세요"
             value={confirmPassword}
             onInput={(v) => setConfirmPassword(v)}
-            invalid={!!errors['confirmPassword']}
-            errorMessage={errors['confirmPassword']}
+            invalid={!!errors.confirmPassword}
+            errorMessage={errors.confirmPassword}
             size="large"
           />
           <Button
