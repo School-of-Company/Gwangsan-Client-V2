@@ -21,12 +21,19 @@
   --zm-color-brand-800: #394e0c;
   --zm-color-brand-900: #1d2706;
 
-  /* Surface/text fallbacks — keep zaemoru defaults but ensure
-     they align with our gray ramp where the two diverge. */
+  /* Map zaemoru's primary CTA surface to the Gwangsan green ramp.
+     Note: zaemoru uses `primary-pressed` (not `-press`) for the
+     :active state — getting this name wrong falls back to blue. */
   --zm-color-primary: var(--zm-color-brand-500);
   --zm-color-primary-hover: var(--zm-color-brand-600);
-  --zm-color-primary-press: var(--zm-color-brand-700);
+  --zm-color-primary-pressed: var(--zm-color-brand-700);
+  --zm-color-primary-subtle: var(--zm-color-brand-50);
   --zm-color-on-primary: #ffffff;
+
+  /* Override the focus ring (defaults to blue) so keyboard focus
+     uses brand green. Danger ring stays red. */
+  --zm-shadow-focus-ring: 0 0 0 3px rgba(143, 195, 29, 0.32);
+  --zm-focus-ring: var(--zm-shadow-focus-ring);
 }
 
 html,
