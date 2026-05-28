@@ -86,7 +86,7 @@ export function StatsView() {
       {
         label: '거래 수',
         data: values,
-        backgroundColor: labels.map((_, i) => PALETTE[i % PALETTE.length]),
+        backgroundColor: labels.map((_, i) => PALETTE[i % PALETTE.length]!),
         borderWidth: 0,
         hoverOffset: 6,
       },
@@ -212,8 +212,7 @@ export function StatsView() {
                         <span
                           className="h-3 w-3 shrink-0 rounded-sm"
                           style={{
-                            backgroundColor:
-                              PALETTE[i % PALETTE.length] ?? PALETTE[0],
+                            backgroundColor: PALETTE[i % PALETTE.length]!,
                           }}
                           aria-hidden
                         />
