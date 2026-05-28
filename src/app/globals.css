@@ -1,0 +1,61 @@
+@import '@zaemoru/tokens/index.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------
+ * zaemoru token overrides — map zaemoru's default brand palette
+ * to the Gwangsan brand colors so zm-* components feel native.
+ * Primary = main-500 (#8FC31D), Secondary surface = sub-500.
+ * -------------------------------------------------------------- */
+:root {
+  --zm-color-brand-50: #e9f3d2;
+  --zm-color-brand-100: #d2e7a5;
+  --zm-color-brand-200: #bcdb77;
+  --zm-color-brand-300: #a5cf4a;
+  --zm-color-brand-400: #8fc31d;
+  --zm-color-brand-500: #8fc31d;
+  --zm-color-brand-600: #729c17;
+  --zm-color-brand-700: #567511;
+  --zm-color-brand-800: #394e0c;
+  --zm-color-brand-900: #1d2706;
+
+  /* Surface/text fallbacks — keep zaemoru defaults but ensure
+     they align with our gray ramp where the two diverge. */
+  --zm-color-primary: var(--zm-color-brand-500);
+  --zm-color-primary-hover: var(--zm-color-brand-600);
+  --zm-color-primary-press: var(--zm-color-brand-700);
+  --zm-color-on-primary: #ffffff;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: #ffffff;
+  color: #191f28;
+  font-feature-settings:
+    'tnum' 1,
+    'ss01' 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Hide native number input spinners — zaemoru uses its own stepper */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
