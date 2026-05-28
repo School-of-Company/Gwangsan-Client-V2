@@ -76,7 +76,7 @@ export function PasswordResetForm() {
       confirmPassword,
     });
     if (!parsed.success) {
-      const next: Record<string, string> = {};
+      const next: Partial<Record<ErrorField, string>> = {};
       for (const i of parsed.error.issues) {
         const key = i.path[0] as ErrorField;
         if (!next[key]) next[key] = i.message;
