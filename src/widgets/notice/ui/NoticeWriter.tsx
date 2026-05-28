@@ -35,6 +35,7 @@ export function NoticeWriter() {
   const isEditing = !!editingId;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isMountedRef = useRef(false);
   const objectUrlsRef = useRef(new Set<string>());
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -63,8 +64,10 @@ export function NoticeWriter() {
   }, [existing]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     const objectUrls = objectUrlsRef.current;
     return () => {
+      isMountedRef.current = false;
       objectUrls.forEach((url) => URL.revokeObjectURL(url));
       objectUrls.clear();
     };
@@ -78,6 +81,8 @@ export function NoticeWriter() {
 
     try {
       const newIds = await uploadImages.mutateAsync(files);
+      if (!isMountedRef.current) return;
+
       const previews = files.map((file, i) => {
         const url = URL.createObjectURL(file);
         objectUrlsRef.current.add(url);
