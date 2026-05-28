@@ -5,7 +5,7 @@ export const metadata = { title: '대시보드 · 광산 어드민' };
 
 export default function MainPage() {
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col gap-4">
+    <div className="flex h-full flex-col gap-4">
       <header className="flex-shrink-0">
         <h1 className="text-titleMedium2 text-gray-900">대시보드</h1>
         <p className="text-body5 text-gray-600">

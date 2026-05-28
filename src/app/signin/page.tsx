@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function SignInPage() {
   return (
-    <div className="-mx-6 -my-8 flex min-h-[calc(100vh-1rem)] items-center justify-center bg-gradient-to-b from-main-100/40 via-white to-white px-6 py-12">
+    <div className="-mx-6 -my-8 flex h-full min-h-[44rem] items-center justify-center bg-gradient-to-b from-main-100/40 via-white to-white px-6 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
           <Image
