@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FileText, Megaphone, Search } from 'lucide-react';
 import { useNotices } from '@/entities/notice';
@@ -15,18 +15,20 @@ export function NoticeList() {
   const searchParams = useSearchParams();
   const activeId = searchParams.get('id');
   const [keyword, setKeyword] = useState('');
+  const deferredKeyword = useDeferredValue(keyword);
+  const [, startTransition] = useTransition();
   const { data, isLoading } = useNotices();
 
   const filtered = useMemo(() => {
     if (!data) return [];
-    const k = keyword.trim().toLowerCase();
+    const k = deferredKeyword.trim().toLowerCase();
     if (!k) return data;
     return data.filter(
       (n) =>
         n.title.toLowerCase().includes(k) ||
         n.content.toLowerCase().includes(k),
     );
-  }, [data, keyword]);
+  }, [data, deferredKeyword]);
 
   return (
     <Card className="flex min-h-0 flex-col">
@@ -62,7 +64,11 @@ export function NoticeList() {
           <EmptyState
             icon={keyword ? <Search size={20} /> : <FileText size={20} />}
             title={keyword ? '검색 결과가 없어요' : '아직 작성된 공지가 없어요'}
-            description={keyword ? '다른 키워드로 검색해 보세요.' : '오른쪽에서 공지를 작성해 보세요.'}
+            description={
+              keyword
+                ? '다른 키워드로 검색해 보세요.'
+                : '오른쪽에서 공지를 작성해 보세요.'
+            }
           />
         ) : (
           <ul className="flex flex-col gap-2">
@@ -79,10 +85,7 @@ export function NoticeList() {
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <Link
-                        href={`/detail/${n.id}`}
-                        className="flex-1 min-w-0"
-                      >
+                      <Link href={`/detail/${n.id}`} className="min-w-0 flex-1">
                         <h3 className="line-clamp-1 text-body3 text-gray-900 group-hover:text-main-700">
                           {n.title}
                         </h3>
@@ -92,7 +95,11 @@ export function NoticeList() {
                       </Link>
                       <button
                         type="button"
-                        onClick={() => router.push(`/notice?id=${n.id}`)}
+                        onClick={() =>
+                          startTransition(() =>
+                            router.push(`/notice?id=${n.id}`),
+                          )
+                        }
                         className="rounded-lg border border-gray-200 px-2.5 py-1 text-caption font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50"
                       >
                         수정
