@@ -15,7 +15,7 @@ import {
 } from './auth';
 import { setCookie } from './cookies';
 
-export const baseURL = process.env['NEXT_PUBLIC_API_URL'] ?? '';
+export const baseURL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 if (typeof window !== 'undefined' && !baseURL) {
   console.error(
