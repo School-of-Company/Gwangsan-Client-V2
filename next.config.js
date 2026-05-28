@@ -4,7 +4,9 @@ const path = require('path');
 const nextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: path.join(__dirname),
-  transpilePackages: ['@zaemoru/react', '@zaemoru/elements'],
+  // Both @zaemoru/* packages ship prebuilt ESM dist; transpiling them
+  // again causes Next to bundle multiple module instances (and multiple
+  // copies of Lit), which double-registers the custom elements.
   images: {
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
   },

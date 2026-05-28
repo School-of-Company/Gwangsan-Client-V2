@@ -44,14 +44,30 @@ export function SignInForm() {
 
     signIn.mutate(parsed.data, {
       onSuccess: (res) => {
+        const token = res?.token;
+        const accessToken = token?.accessToken;
+        const refreshToken = token?.refreshToken;
+
+        if (!accessToken || !refreshToken || !res?.role) {
+          // eslint-disable-next-line no-console
+          console.error(
+            '[signin] unexpected response shape — expected { token: { accessToken, refreshToken }, role }, got:',
+            res,
+          );
+          toast.error(
+            '로그인 응답 형식이 예상과 달라요. 콘솔을 확인해주세요.',
+          );
+          return;
+        }
+
         if (!isAdminRole(res.role)) {
           toast.error('관리자 권한이 없는 계정이에요.');
           return;
         }
-        saveTokens(res.token);
+
+        saveTokens({ accessToken, refreshToken });
         saveRole(res.role);
         router.replace(authConfig.homePage);
-        router.refresh();
       },
     });
   };
