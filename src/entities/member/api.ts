@@ -9,8 +9,8 @@ export interface MemberFilter {
 
 export const listMembers = async (filter: MemberFilter): Promise<Member[]> => {
   const params: Record<string, string | number> = {};
-  if (filter.nickname) params.nickname = filter.nickname;
-  if (filter.placeId) params.placeId = filter.placeId;
+  if (filter.nickname) params['nickname'] = filter.nickname;
+  if (filter.placeId) params['placeId'] = filter.placeId;
   const { data } = await api.get<Member[]>('/member/all', { params });
   return data;
 };

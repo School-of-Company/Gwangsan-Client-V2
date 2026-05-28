@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
-import { ReactNode, useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 const ReactQueryDevtools =
   process.env.NODE_ENV === 'development'

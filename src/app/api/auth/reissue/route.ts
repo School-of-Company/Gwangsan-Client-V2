@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import axios from 'axios';
 
 function joinUrl(base: string, path: string) {

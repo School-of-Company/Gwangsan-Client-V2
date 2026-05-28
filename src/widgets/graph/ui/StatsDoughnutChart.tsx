@@ -30,7 +30,7 @@ export function StatsDoughnutChart({
       {
         label: '거래 수',
         data: values,
-        backgroundColor: labels.map((_, i) => colors[i % colors.length]),
+        backgroundColor: labels.map((_, i) => colors[i % colors.length]!),
         borderWidth: 0,
         hoverOffset: 6,
       },

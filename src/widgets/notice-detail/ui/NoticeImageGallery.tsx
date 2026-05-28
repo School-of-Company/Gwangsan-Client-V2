@@ -17,13 +17,15 @@ export function NoticeImageGallery({ images }: NoticeImageGalleryProps) {
   const prev = () =>
     setIndex((i) => (i - 1 + images.length) % images.length);
   const next = () => setIndex((i) => (i + 1) % images.length);
+  const image = images[index];
+  if (!image) return null;
 
   return (
     <div className="flex flex-col gap-3">
       <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-gray-100">
         <Image
-          key={images[index].imageId}
-          src={images[index].imageUrl}
+          key={image.imageId}
+          src={image.imageUrl}
           alt={`공지 이미지 ${index + 1}`}
           fill
           sizes="(min-width: 1024px) 800px, 100vw"

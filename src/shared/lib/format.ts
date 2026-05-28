@@ -2,12 +2,13 @@ import type { MemberRole } from '@/shared/constants/role';
 
 export const formatDate = (iso?: string): string => {
   if (!iso) return '-';
-  return iso.split('T')[0].replaceAll('-', '.');
+  const [date = ''] = iso.split('T');
+  return date.replaceAll('-', '.');
 };
 
 export const formatDateTime = (iso?: string): string => {
   if (!iso) return '-';
-  const [date, time] = iso.split('T');
+  const [date = '', time] = iso.split('T');
   return `${date.replaceAll('-', '.')} ${time?.slice(0, 5) ?? ''}`.trim();
 };
 
