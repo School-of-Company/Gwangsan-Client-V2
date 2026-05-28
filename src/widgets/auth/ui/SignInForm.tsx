@@ -49,7 +49,6 @@ export function SignInForm() {
         const refreshToken = token?.refreshToken;
 
         if (!accessToken || !refreshToken || !res?.role) {
-          // eslint-disable-next-line no-console
           console.error(
             '[signin] unexpected response shape — expected { token: { accessToken, refreshToken }, role }, got:',
             res,

@@ -9,7 +9,7 @@ import {
   useCancelTrade,
   useDismissAlert,
 } from '@/entities/alert';
-import { Card, CardBody, CardHeader } from '@/shared/ui/Card';
+import { Card, CardHeader } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { placeLabel } from '@/shared/constants/place';
 import { formatDateTime } from '@/shared/lib/format';

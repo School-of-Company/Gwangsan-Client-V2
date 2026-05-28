@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Toaster } from 'sonner';
 import { QueryProvider } from '@/shared/lib/query';
 

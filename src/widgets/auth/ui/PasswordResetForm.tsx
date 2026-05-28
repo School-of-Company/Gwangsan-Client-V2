@@ -16,6 +16,7 @@ import { authConfig } from '@/shared/config/auth';
 import { cn } from '@/shared/lib/cn';
 
 type Step = 'phone' | 'code' | 'newPassword';
+type ErrorField = 'phoneNumber' | 'code' | 'newPassword' | 'confirmPassword';
 
 const STEPS: { id: Step; label: string }[] = [
   { id: 'phone', label: '전화번호' },
@@ -34,9 +35,9 @@ export function PasswordResetForm() {
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<ErrorField, string>>>({});
 
-  const setError = (field: string, message?: string) =>
+  const setError = (field: ErrorField, message?: string) =>
     setErrors((prev) => ({ ...prev, [field]: message ?? '' }));
 
   const stepIndex = useMemo(
@@ -75,9 +76,9 @@ export function PasswordResetForm() {
       confirmPassword,
     });
     if (!parsed.success) {
-      const next: Record<string, string> = {};
+      const next: Partial<Record<ErrorField, string>> = {};
       for (const i of parsed.error.issues) {
-        const key = i.path[0] as string;
+        const key = i.path[0] as ErrorField;
         if (!next[key]) next[key] = i.message;
       }
       setErrors((prev) => ({ ...prev, ...next }));

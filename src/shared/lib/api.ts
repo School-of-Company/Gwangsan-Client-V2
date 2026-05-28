@@ -1,9 +1,9 @@
 'use client';
 
 import axios, {
-  AxiosError,
-  AxiosResponse,
-  InternalAxiosRequestConfig,
+  type AxiosError,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
 } from 'axios';
 import { authConfig } from '@/shared/config/auth';
 import {
@@ -18,7 +18,6 @@ import { setCookie } from './cookies';
 export const baseURL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 if (typeof window !== 'undefined' && !baseURL) {
-  // eslint-disable-next-line no-console
   console.error(
     '[gwangsan] NEXT_PUBLIC_API_URL is not set. Create .env.local with NEXT_PUBLIC_API_URL=... and restart the dev server.',
   );

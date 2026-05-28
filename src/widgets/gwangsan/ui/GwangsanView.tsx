@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Coins, Minus, Plus, Users } from 'lucide-react';
 import { useMembers } from '@/entities/member';
-import { Card, CardBody, CardHeader } from '@/shared/ui/Card';
+import { Card, CardHeader } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { SearchInput } from '@/shared/ui/SearchInput';
 import { Select } from '@/shared/ui/Select';

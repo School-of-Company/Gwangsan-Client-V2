@@ -20,6 +20,7 @@ import { cn } from '@/shared/lib/cn';
 
 const TITLE_MAX = 100;
 const CONTENT_MAX = 1000;
+type ErrorField = 'title' | 'content' | 'placeId';
 
 interface ImagePreview {
   id: number;
@@ -37,7 +38,7 @@ export function NoticeWriter() {
   const [content, setContent] = useState('');
   const [placeId, setPlaceId] = useState<string>('');
   const [images, setImages] = useState<ImagePreview[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<ErrorField, string>>>({});
 
   const { data: existing } = useNotice(editingId);
   const uploadImages = useUploadNoticeImages();
@@ -59,18 +60,25 @@ export function NoticeWriter() {
   }, [existing]);
 
   const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.currentTarget.files) return;
-    const files = Array.from(e.currentTarget.files);
+    const input = e.currentTarget;
+    if (!input.files) return;
+    const files = Array.from(input.files);
     if (files.length === 0) return;
-    const newIds = await uploadImages.mutateAsync(files);
-    setImages((prev) => [
-      ...prev,
-      ...files.map((file, i) => ({
-        id: newIds[i],
-        url: URL.createObjectURL(file),
-      })),
-    ]);
-    e.currentTarget.value = '';
+
+    try {
+      const newIds = await uploadImages.mutateAsync(files);
+      setImages((prev) => [
+        ...prev,
+        ...files.map((file, i) => ({
+          id: newIds[i]!,
+          url: URL.createObjectURL(file),
+        })),
+      ]);
+    } catch (_error) {
+      return;
+    } finally {
+      input.value = '';
+    }
   };
 
   const removeImage = (id: number) =>
@@ -93,9 +101,9 @@ export function NoticeWriter() {
     };
     const parsed = noticeSchema.safeParse(payload);
     if (!parsed.success) {
-      const next: Record<string, string> = {};
+      const next: Partial<Record<ErrorField, string>> = {};
       for (const i of parsed.error.issues) {
-        const key = i.path[0] as string;
+        const key = i.path[0] as ErrorField;
         if (!next[key]) next[key] = i.message;
       }
       setErrors(next);
