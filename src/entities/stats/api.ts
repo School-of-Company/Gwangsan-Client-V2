@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { api } from '@/shared/lib/api';
 
 export type StatsPeriod = 'DAY' | 'WEEK' | 'MONTH';
@@ -28,11 +27,12 @@ export const getPlaceStats = (period: StatsPeriod, placeId: number) =>
     .get<PlaceStatsRow>(`/trade/graph/place?period=${period}&place_id=${placeId}`)
     .then((r) => r.data);
 
-export const downloadTradeExcel = (
+export const downloadTradeExcel = async (
   period: StatsPeriod,
   headId: number,
   rows: { label: string; count: number }[],
 ) => {
+  const XLSX = await import('xlsx');
   const total = rows.reduce((s, r) => s + r.count, 0);
   const sheetData = [
     ['지점명', '거래량', '비율(%)'],
@@ -41,7 +41,7 @@ export const downloadTradeExcel = (
       r.count,
       total ? Math.round((r.count / total) * 100) : 0,
     ]),
-    ['합계', total, 100],
+    ['합계', total, total ? 100 : 0],
   ];
   const ws = XLSX.utils.aoa_to_sheet(sheetData);
   const wb = XLSX.utils.book_new();
