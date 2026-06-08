@@ -30,21 +30,21 @@ export const getPlaceStats = (period: StatsPeriod, placeId: number) =>
 export const downloadTradeExcel = async (
   period: StatsPeriod,
   headId: number,
+  rows: { label: string; count: number }[],
 ) => {
-  const res = await api.get(`/trade/excel?period=${period}&head_id=${headId}`, {
-    responseType: 'blob',
-    headers: {
-      Accept:
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    },
-  });
-  const blob = new Blob([res.data]);
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `trade_${period}_${headId}.xlsx`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+  const XLSX = await import('xlsx');
+  const total = rows.reduce((s, r) => s + r.count, 0);
+  const sheetData = [
+    ['지점명', '거래량', '비율(%)'],
+    ...rows.map((r) => [
+      r.label,
+      r.count,
+      total ? Math.round((r.count / total) * 100) : 0,
+    ]),
+    ['합계', total, total ? 100 : 0],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(sheetData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '거래통계');
+  XLSX.writeFile(wb, `trade_${period}_${headId}.xlsx`);
 };

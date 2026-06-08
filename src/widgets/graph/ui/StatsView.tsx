@@ -82,7 +82,12 @@ export function StatsView() {
   const fetching = isPlaceMode ? placeStats.isFetching : headStats.isFetching;
   const hasData = values.length > 0 && values.some((v) => v > 0);
 
-  const handleExcel = () => downloadTradeExcel(period, headId);
+  const handleExcel = () =>
+    downloadTradeExcel(
+      period,
+      headId,
+      labels.map((label, i) => ({ label, count: values[i] ?? 0 })),
+    );
 
   return (
     <div className="flex flex-col gap-6">
