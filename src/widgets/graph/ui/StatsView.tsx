@@ -51,10 +51,16 @@ export function StatsView() {
   const [filterMode, setFilterMode] = useState<'period' | 'custom'>('period');
   const [period, setPeriod] = useState<StatsPeriod>('DAY');
   const [startDate, setStartDate] = useState<string>(
-    () => new Date().toISOString().slice(0, 10),
+    () =>
+      new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 10),
   );
   const [endDate, setEndDate] = useState<string>(
-    () => new Date().toISOString().slice(0, 10),
+    () =>
+      new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 10),
   );
   const [headId, setHeadId] = useState<number>(
     Number(headOptions[0]?.value ?? 12),

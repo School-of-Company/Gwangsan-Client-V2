@@ -47,7 +47,7 @@ export const useHeadStatsByDateRange = (
   useQuery({
     queryKey: statsKeys.headByDate(startDate, endDate, headId ?? 0),
     queryFn: () => getHeadStatsByDateRange(startDate, endDate, headId as number),
-    enabled: !!headId && !!startDate && !!endDate,
+    enabled: !!headId && !!startDate && !!endDate && startDate <= endDate,
     placeholderData: keepPreviousData,
   });
 
@@ -60,6 +60,5 @@ export const usePlaceStatsByDateRange = (
     queryKey: statsKeys.placeByDate(startDate, endDate, placeId ?? 0),
     queryFn: () =>
       getPlaceStatsByDateRange(startDate, endDate, placeId as number),
-    enabled: !!placeId && !!startDate && !!endDate,
-    placeholderData: keepPreviousData,
+    enabled: !!placeId && !!startDate && !!endDate && startDate <= endDate,
   });
