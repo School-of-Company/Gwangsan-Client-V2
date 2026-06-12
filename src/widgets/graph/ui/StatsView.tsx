@@ -6,8 +6,6 @@ import { Download } from 'lucide-react';
 import {
   STATS_PERIODS,
   downloadTradeExcel,
-  useAllHeadsStats,
-  useAllHeadsStatsByDateRange,
   useFilteredPlaceStats,
   useFilteredPlaceStatsByDateRange,
   usePlaceStats,
@@ -48,7 +46,6 @@ const PALETTE = [
 ];
 
 const ALL = '__all__';
-const ALL_HEADS = '__all_heads__';
 
 export function StatsView() {
   const [filterMode, setFilterMode] = useState<'period' | 'custom'>('period');
@@ -65,17 +62,21 @@ export function StatsView() {
         .toISOString()
         .slice(0, 10),
   );
-  const [headIdRaw, setHeadIdRaw] = useState<string>(
-    String(headOptions[0]?.value ?? 1),
-  );
+  const [headId, setHeadId] = useState<number>(Number(headOptions[0]?.value ?? 1));
   const [placeIdRaw, setPlaceIdRaw] = useState<string>(ALL);
 
-  const isAllHeads = headIdRaw === ALL_HEADS;
-  const headId = isAllHeads ? undefined : Number(headIdRaw);
+  const placeId = placeIdRaw !== ALL ? Number(placeIdRaw) : undefined;
+  const isPlaceMode = !!placeId;
+  const isCustom = filterMode === 'custom';
+
+  // 본점이 바뀌면 지점 선택 초기화
+  useEffect(() => {
+    setPlaceIdRaw(ALL);
+  }, [headId]);
 
   // HEAD_PLACES 정적 매핑으로 현재 본점 소속 지점 ID 파악
   const currentPlaceIds = useMemo(
-    () => (headId ? (HEAD_PLACES[headId] ?? []) : []),
+    () => HEAD_PLACES[headId] ?? [],
     [headId],
   );
 
@@ -84,26 +85,8 @@ export function StatsView() {
     [currentPlaceIds],
   );
 
-  const placeId = placeIdRaw !== ALL ? Number(placeIdRaw) : undefined;
-  const isPlaceMode = !isAllHeads && !!placeId;
-  const isCustom = filterMode === 'custom';
-
-  // 본점이 바뀌면 지점 선택 초기화
-  useEffect(() => {
-    setPlaceIdRaw(ALL);
-  }, [headIdRaw]);
-
-  // 전체 본점 모드: 각 본점별 거래량 합산
-  const allHeadsStats = useAllHeadsStats(period, isAllHeads && !isCustom);
-  const allHeadsStatsByDate = useAllHeadsStatsByDateRange(
-    startDate,
-    endDate,
-    isAllHeads && isCustom,
-  );
-  const activeAllHeadsStats = isCustom ? allHeadsStatsByDate : allHeadsStats;
-
   // 실제 count는 개별 지점 API로 조회 (head API의 tradeCount 버그 우회)
-  const headStats = useFilteredPlaceStats(period, currentPlaceIds, !isPlaceMode && !isCustom && !isAllHeads);
+  const headStats = useFilteredPlaceStats(period, currentPlaceIds, !isPlaceMode && !isCustom);
   const placeStats = usePlaceStats(
     period,
     isPlaceMode && !isCustom ? placeId : undefined,
@@ -112,7 +95,7 @@ export function StatsView() {
     startDate,
     endDate,
     currentPlaceIds,
-    !isPlaceMode && isCustom && !isAllHeads,
+    !isPlaceMode && isCustom,
   );
   const placeStatsByDate = usePlaceStatsByDateRange(
     startDate,
@@ -124,14 +107,6 @@ export function StatsView() {
   const activePlaceStats = isCustom ? placeStatsByDate : placeStats;
 
   const { labels, values, totalCount } = useMemo(() => {
-    if (isAllHeads && activeAllHeadsStats.data) {
-      const data = activeAllHeadsStats.data;
-      return {
-        labels: data.map((d) => d.head.name),
-        values: data.map((d) => d.tradeCount),
-        totalCount: data.reduce((sum, d) => sum + d.tradeCount, 0),
-      };
-    }
     if (isPlaceMode && activePlaceStats.data) {
       const name = PLACES[placeId!] ?? '선택 지점';
       return {
@@ -140,7 +115,7 @@ export function StatsView() {
         totalCount: activePlaceStats.data.count,
       };
     }
-    if (!isAllHeads && !isPlaceMode && activeHeadStats.data) {
+    if (!isPlaceMode && activeHeadStats.data) {
       const data = activeHeadStats.data;
       return {
         labels: data.map((d) => d.place.name),
@@ -149,30 +124,18 @@ export function StatsView() {
       };
     }
     return { labels: [] as string[], values: [] as number[], totalCount: 0 };
-  }, [isAllHeads, isPlaceMode, activeAllHeadsStats.data, activePlaceStats.data, activeHeadStats.data, placeId]);
+  }, [isPlaceMode, activePlaceStats.data, activeHeadStats.data, placeId]);
 
-  const loading = isAllHeads
-    ? activeAllHeadsStats.isLoading
-    : isPlaceMode
-      ? activePlaceStats.isLoading
-      : activeHeadStats.isLoading;
-  const fetching = isAllHeads
-    ? activeAllHeadsStats.isFetching
-    : isPlaceMode
-      ? activePlaceStats.isFetching
-      : activeHeadStats.isFetching;
-  const isError = isAllHeads
-    ? activeAllHeadsStats.isError
-    : isPlaceMode
-      ? activePlaceStats.isError
-      : activeHeadStats.isError;
+  const loading = isPlaceMode ? activePlaceStats.isLoading : activeHeadStats.isLoading;
+  const fetching = isPlaceMode ? activePlaceStats.isFetching : activeHeadStats.isFetching;
+  const isError = isPlaceMode ? activePlaceStats.isError : activeHeadStats.isError;
   const hasData = values.length > 0 && values.some((v) => v > 0);
 
   const periodLabel = isCustom ? `${startDate}~${endDate}` : period;
   const handleExcel = () => {
     if (loading || !hasData) return;
     let rows: { label: string; count: number }[];
-    if (isAllHeads || isPlaceMode) {
+    if (isPlaceMode) {
       rows = labels.map((label, i) => ({ label, count: values[i] ?? 0 }));
     } else {
       const apiData = (isCustom ? headStatsByDate : headStats).data ?? [];
@@ -186,7 +149,7 @@ export function StatsView() {
         count: apiMap.get(Number(opt.value)) ?? 0,
       }));
     }
-    downloadTradeExcel(periodLabel, headId ?? 0, rows);
+    downloadTradeExcel(periodLabel, headId, rows);
   };
 
   return (
@@ -270,26 +233,24 @@ export function StatsView() {
         </div>
         <Select
           label="본점"
-          value={headIdRaw}
-          onChange={(v) => setHeadIdRaw(v || String(headOptions[0]?.value ?? 1))}
-          options={[{ value: ALL_HEADS, label: '전체 본점' }, ...headOptions]}
+          value={String(headId)}
+          onChange={(v) => setHeadId(Number(v))}
+          options={headOptions}
         />
-        {!isAllHeads && (
-          <Select
-            label="지점"
-            value={placeIdRaw === ALL ? undefined : placeIdRaw}
-            onChange={(v) => setPlaceIdRaw(v || ALL)}
-            placeholder="본점 전체"
-            options={[{ value: '', label: '본점 전체' }, ...filteredPlaceOptions]}
-          />
-        )}
+        <Select
+          label="지점"
+          value={placeIdRaw === ALL ? undefined : placeIdRaw}
+          onChange={(v) => setPlaceIdRaw(v || ALL)}
+          placeholder="본점 전체"
+          options={[{ value: '', label: '본점 전체' }, ...filteredPlaceOptions]}
+        />
       </div>
 
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
             <h2 className="text-body1 text-gray-900">
-              {isAllHeads ? '전체 본점 거래' : isPlaceMode ? '지점별 거래' : '본점 전체 거래'}
+              {isPlaceMode ? '지점별 거래' : '본점 전체 거래'}
             </h2>
             <span className="rounded-full bg-main-100 px-2 py-0.5 text-caption font-semibold text-main-700">
               총 {formatNumber(totalCount)}건
