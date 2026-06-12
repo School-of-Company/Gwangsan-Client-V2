@@ -15,7 +15,7 @@ import {
 import { Card, CardBody, CardHeader } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Select } from '@/shared/ui/Select';
-import { PLACES, headOptions, placeOptions } from '@/shared/constants/place';
+import { PLACES, HEAD_PLACES, headOptions, placeOptions } from '@/shared/constants/place';
 import { formatNumber } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
 
@@ -66,6 +66,11 @@ export function StatsView() {
     Number(headOptions[0]?.value ?? 12),
   );
   const [placeIdRaw, setPlaceIdRaw] = useState<string>(ALL);
+
+  const filteredPlaceOptions = useMemo(() => {
+    const allowed = HEAD_PLACES[headId] ?? [];
+    return placeOptions.filter((opt) => allowed.includes(Number(opt.value)));
+  }, [headId]);
 
   const placeId = placeIdRaw !== ALL ? Number(placeIdRaw) : undefined;
   const isPlaceMode = !!placeId;
@@ -122,12 +127,20 @@ export function StatsView() {
   const hasData = values.length > 0 && values.some((v) => v > 0);
 
   const periodLabel = isCustom ? `${startDate}~${endDate}` : period;
-  const handleExcel = () =>
-    downloadTradeExcel(
-      periodLabel,
-      headId,
-      labels.map((label, i) => ({ label, count: values[i] ?? 0 })),
-    );
+  const handleExcel = () => {
+    let rows: { label: string; count: number }[];
+    if (isPlaceMode) {
+      rows = labels.map((label, i) => ({ label, count: values[i] ?? 0 }));
+    } else {
+      const apiData = (isCustom ? headStatsByDate : headStats).data ?? [];
+      const apiMap = new Map(apiData.map((d) => [d.place.id, d.tradeCount]));
+      rows = filteredPlaceOptions.map((opt) => ({
+        label: opt.label,
+        count: apiMap.get(Number(opt.value)) ?? 0,
+      }));
+    }
+    downloadTradeExcel(periodLabel, headId, rows);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -211,7 +224,10 @@ export function StatsView() {
         <Select
           label="본점"
           value={String(headId)}
-          onChange={(v) => setHeadId(Number(v))}
+          onChange={(v) => {
+            setHeadId(Number(v));
+            setPlaceIdRaw(ALL);
+          }}
           options={headOptions}
         />
         <Select
@@ -219,7 +235,7 @@ export function StatsView() {
           value={placeIdRaw === ALL ? undefined : placeIdRaw}
           onChange={(v) => setPlaceIdRaw(v || ALL)}
           placeholder="본점 전체"
-          options={[{ value: '', label: '본점 전체' }, ...placeOptions]}
+          options={[{ value: '', label: '본점 전체' }, ...filteredPlaceOptions]}
         />
       </div>
 
