@@ -128,12 +128,17 @@ export function StatsView() {
 
   const periodLabel = isCustom ? `${startDate}~${endDate}` : period;
   const handleExcel = () => {
+    if (loading || !hasData) return;
     let rows: { label: string; count: number }[];
     if (isPlaceMode) {
       rows = labels.map((label, i) => ({ label, count: values[i] ?? 0 }));
     } else {
       const apiData = (isCustom ? headStatsByDate : headStats).data ?? [];
-      const apiMap = new Map(apiData.map((d) => [d.place.id, d.tradeCount]));
+      const apiMap = new Map(
+        apiData
+          .filter((d) => d.place?.id != null)
+          .map((d) => [d.place.id, d.tradeCount]),
+      );
       rows = filteredPlaceOptions.map((opt) => ({
         label: opt.label,
         count: apiMap.get(Number(opt.value)) ?? 0,
