@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Download } from 'lucide-react';
 import {
   STATS_PERIODS,
   downloadTradeExcel,
-  useFilteredPlaceStats,
-  useFilteredPlaceStatsByDateRange,
+  useHeadStats,
   usePlaceStats,
+  useHeadStatsByDateRange,
   usePlaceStatsByDateRange,
   type StatsPeriod,
 } from '@/entities/stats';
@@ -62,40 +62,32 @@ export function StatsView() {
         .toISOString()
         .slice(0, 10),
   );
-  const [headId, setHeadId] = useState<number>(Number(headOptions[0]?.value ?? 1));
+  const [headId, setHeadId] = useState<number>(
+    Number(headOptions[0]?.value ?? 1),
+  );
   const [placeIdRaw, setPlaceIdRaw] = useState<string>(ALL);
+
+  const filteredPlaceOptions = useMemo(() => {
+    const allowed = HEAD_PLACES[headId] ?? [];
+    return placeOptions.filter((opt) => allowed.includes(Number(opt.value)));
+  }, [headId]);
 
   const placeId = placeIdRaw !== ALL ? Number(placeIdRaw) : undefined;
   const isPlaceMode = !!placeId;
   const isCustom = filterMode === 'custom';
 
-  // 본점이 바뀌면 지점 선택 초기화
-  useEffect(() => {
-    setPlaceIdRaw(ALL);
-  }, [headId]);
-
-  // HEAD_PLACES 정적 매핑으로 현재 본점 소속 지점 ID 파악
-  const currentPlaceIds = useMemo(
-    () => HEAD_PLACES[headId] ?? [],
-    [headId],
+  const headStats = useHeadStats(
+    period,
+    !isPlaceMode && !isCustom ? headId : undefined,
   );
-
-  const filteredPlaceOptions = useMemo(
-    () => placeOptions.filter((opt) => currentPlaceIds.includes(Number(opt.value))),
-    [currentPlaceIds],
-  );
-
-  // 실제 count는 개별 지점 API로 조회 (head API의 tradeCount 버그 우회)
-  const headStats = useFilteredPlaceStats(period, currentPlaceIds, !isPlaceMode && !isCustom);
   const placeStats = usePlaceStats(
     period,
     isPlaceMode && !isCustom ? placeId : undefined,
   );
-  const headStatsByDate = useFilteredPlaceStatsByDateRange(
+  const headStatsByDate = useHeadStatsByDateRange(
     startDate,
     endDate,
-    currentPlaceIds,
-    !isPlaceMode && isCustom,
+    !isPlaceMode && isCustom ? headId : undefined,
   );
   const placeStatsByDate = usePlaceStatsByDateRange(
     startDate,
@@ -126,9 +118,12 @@ export function StatsView() {
     return { labels: [] as string[], values: [] as number[], totalCount: 0 };
   }, [isPlaceMode, activePlaceStats.data, activeHeadStats.data, placeId]);
 
-  const loading = isPlaceMode ? activePlaceStats.isLoading : activeHeadStats.isLoading;
-  const fetching = isPlaceMode ? activePlaceStats.isFetching : activeHeadStats.isFetching;
-  const isError = isPlaceMode ? activePlaceStats.isError : activeHeadStats.isError;
+  const loading = isPlaceMode
+    ? activePlaceStats.isLoading
+    : activeHeadStats.isLoading;
+  const fetching = isPlaceMode
+    ? activePlaceStats.isFetching
+    : activeHeadStats.isFetching;
   const hasData = values.length > 0 && values.some((v) => v > 0);
 
   const periodLabel = isCustom ? `${startDate}~${endDate}` : period;
@@ -234,7 +229,10 @@ export function StatsView() {
         <Select
           label="본점"
           value={String(headId)}
-          onChange={(v) => setHeadId(Number(v))}
+          onChange={(v) => {
+            setHeadId(Number(v));
+            setPlaceIdRaw(ALL);
+          }}
           options={headOptions}
         />
         <Select
@@ -273,11 +271,6 @@ export function StatsView() {
             <div className="flex h-[420px] items-center justify-center">
               <div className="h-48 w-48 animate-pulse rounded-full bg-gray-100" />
             </div>
-          ) : isError ? (
-            <EmptyState
-              title="통계를 불러오지 못했어요"
-              description="서버 오류가 발생했어요. 잠시 후 다시 시도해주세요."
-            />
           ) : !hasData ? (
             <EmptyState
               title="해당 조건의 데이터가 없어요"

@@ -21,16 +21,7 @@ export interface PlaceStatsRow {
 export const getHeadStats = (period: StatsPeriod, headId: number) =>
   api
     .get<HeadStatsRow[]>(`/trade/graph/head?period=${period}&head_id=${headId}`)
-    .then((r) => {
-      const raw = r.data as unknown as Array<Record<string, unknown>>;
-      return raw.map((row) => ({
-        place: row['place'] as { id: number; name: string },
-        tradeCount:
-          (row['tradeCount'] as number | undefined) ??
-          (row['trade_count'] as number | undefined) ??
-          0,
-      }));
-    });
+    .then((r) => r.data);
 
 export const getPlaceStats = (period: StatsPeriod, placeId: number) =>
   api
@@ -46,16 +37,7 @@ export const getHeadStatsByDateRange = (
     .get<HeadStatsRow[]>(
       `/trade/statistics/head?head_id=${headId}&start_date=${startDate}&end_date=${endDate}`,
     )
-    .then((r) => {
-      const raw = r.data as unknown as Array<Record<string, unknown>>;
-      return raw.map((row) => ({
-        place: row['place'] as { id: number; name: string },
-        tradeCount:
-          (row['tradeCount'] as number | undefined) ??
-          (row['trade_count'] as number | undefined) ??
-          0,
-      }));
-    });
+    .then((r) => r.data);
 
 export const getPlaceStatsByDateRange = (
   startDate: string,
