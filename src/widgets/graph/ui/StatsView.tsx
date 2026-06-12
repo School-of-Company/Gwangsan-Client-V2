@@ -10,8 +10,6 @@ import {
   useAllHeadsStatsByDateRange,
   useFilteredPlaceStats,
   useFilteredPlaceStatsByDateRange,
-  useHeadStats,
-  useHeadStatsByDateRange,
   usePlaceStats,
   usePlaceStatsByDateRange,
   type StatsPeriod,
@@ -19,7 +17,7 @@ import {
 import { Card, CardBody, CardHeader } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Select } from '@/shared/ui/Select';
-import { PLACES, headOptions, placeOptions } from '@/shared/constants/place';
+import { PLACES, HEAD_PLACES, headOptions, placeOptions } from '@/shared/constants/place';
 import { formatNumber } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
 
@@ -74,6 +72,18 @@ export function StatsView() {
 
   const isAllHeads = headIdRaw === ALL_HEADS;
   const headId = isAllHeads ? undefined : Number(headIdRaw);
+
+  // HEAD_PLACES 정적 매핑으로 현재 본점 소속 지점 ID 파악
+  const currentPlaceIds = useMemo(
+    () => (headId ? (HEAD_PLACES[headId] ?? []) : []),
+    [headId],
+  );
+
+  const filteredPlaceOptions = useMemo(
+    () => placeOptions.filter((opt) => currentPlaceIds.includes(Number(opt.value))),
+    [currentPlaceIds],
+  );
+
   const placeId = placeIdRaw !== ALL ? Number(placeIdRaw) : undefined;
   const isPlaceMode = !isAllHeads && !!placeId;
   const isCustom = filterMode === 'custom';
@@ -91,21 +101,6 @@ export function StatsView() {
     isAllHeads && isCustom,
   );
   const activeAllHeadsStats = isCustom ? allHeadsStatsByDate : allHeadsStats;
-
-  // 본점의 지점 목록 조회 (지점 드롭다운 + 차트용 ID 파악)
-  const headPlaceList = useHeadStats(period, !isCustom && !isAllHeads ? headId : undefined);
-  const headPlaceListByDate = useHeadStatsByDateRange(
-    startDate,
-    endDate,
-    isCustom && !isAllHeads ? headId : undefined,
-  );
-
-  // 현재 본점에 속한 지점 IDs (head API의 지점 목록은 정확함)
-  const currentPlaceIds = useMemo(() => {
-    const data = isCustom ? headPlaceListByDate.data : headPlaceList.data;
-    if (!data) return [] as number[];
-    return data.map((d) => d.place.id).filter((id): id is number => id in PLACES);
-  }, [headPlaceList.data, headPlaceListByDate.data, isCustom]);
 
   // 실제 count는 개별 지점 API로 조회 (head API의 tradeCount 버그 우회)
   const headStats = useFilteredPlaceStats(period, currentPlaceIds, !isPlaceMode && !isCustom && !isAllHeads);
@@ -127,12 +122,6 @@ export function StatsView() {
 
   const activeHeadStats = isCustom ? headStatsByDate : headStats;
   const activePlaceStats = isCustom ? placeStatsByDate : placeStats;
-
-  // 선택된 본점에 속하는 지점만 드롭다운에 표시
-  const filteredPlaceOptions = useMemo(
-    () => placeOptions.filter((opt) => currentPlaceIds.includes(Number(opt.value))),
-    [currentPlaceIds],
-  );
 
   const { labels, values, totalCount } = useMemo(() => {
     if (isAllHeads && activeAllHeadsStats.data) {
@@ -162,15 +151,11 @@ export function StatsView() {
     return { labels: [] as string[], values: [] as number[], totalCount: 0 };
   }, [isAllHeads, isPlaceMode, activeAllHeadsStats.data, activePlaceStats.data, activeHeadStats.data, placeId]);
 
-  const headListLoading = isCustom
-    ? headPlaceListByDate.isLoading
-    : headPlaceList.isLoading;
-
   const loading = isAllHeads
     ? activeAllHeadsStats.isLoading
     : isPlaceMode
       ? activePlaceStats.isLoading
-      : headListLoading || activeHeadStats.isLoading;
+      : activeHeadStats.isLoading;
   const fetching = isAllHeads
     ? activeAllHeadsStats.isFetching
     : isPlaceMode
@@ -184,12 +169,25 @@ export function StatsView() {
   const hasData = values.length > 0 && values.some((v) => v > 0);
 
   const periodLabel = isCustom ? `${startDate}~${endDate}` : period;
-  const handleExcel = () =>
-    downloadTradeExcel(
-      periodLabel,
-      headId ?? 0,
-      labels.map((label, i) => ({ label, count: values[i] ?? 0 })),
-    );
+  const handleExcel = () => {
+    if (loading || !hasData) return;
+    let rows: { label: string; count: number }[];
+    if (isAllHeads || isPlaceMode) {
+      rows = labels.map((label, i) => ({ label, count: values[i] ?? 0 }));
+    } else {
+      const apiData = (isCustom ? headStatsByDate : headStats).data ?? [];
+      const apiMap = new Map(
+        apiData
+          .filter((d) => d.place?.id != null)
+          .map((d) => [d.place.id, d.tradeCount]),
+      );
+      rows = filteredPlaceOptions.map((opt) => ({
+        label: opt.label,
+        count: apiMap.get(Number(opt.value)) ?? 0,
+      }));
+    }
+    downloadTradeExcel(periodLabel, headId ?? 0, rows);
+  };
 
   return (
     <div className="flex flex-col gap-6">
