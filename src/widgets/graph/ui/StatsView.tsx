@@ -1,14 +1,18 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Download } from 'lucide-react';
 import {
   STATS_PERIODS,
   downloadTradeExcel,
+  useAllHeadsStats,
+  useAllHeadsStatsByDateRange,
+  useFilteredPlaceStats,
+  useFilteredPlaceStatsByDateRange,
   useHeadStats,
-  usePlaceStats,
   useHeadStatsByDateRange,
+  usePlaceStats,
   usePlaceStatsByDateRange,
   type StatsPeriod,
 } from '@/entities/stats';
@@ -46,6 +50,7 @@ const PALETTE = [
 ];
 
 const ALL = '__all__';
+const ALL_HEADS = '__all_heads__';
 
 export function StatsView() {
   const [filterMode, setFilterMode] = useState<'period' | 'custom'>('period');
@@ -62,27 +67,57 @@ export function StatsView() {
         .toISOString()
         .slice(0, 10),
   );
-  const [headId, setHeadId] = useState<number>(
-    Number(headOptions[0]?.value ?? 12),
+  const [headIdRaw, setHeadIdRaw] = useState<string>(
+    String(headOptions[0]?.value ?? 1),
   );
   const [placeIdRaw, setPlaceIdRaw] = useState<string>(ALL);
 
+  const isAllHeads = headIdRaw === ALL_HEADS;
+  const headId = isAllHeads ? undefined : Number(headIdRaw);
   const placeId = placeIdRaw !== ALL ? Number(placeIdRaw) : undefined;
-  const isPlaceMode = !!placeId;
+  const isPlaceMode = !isAllHeads && !!placeId;
   const isCustom = filterMode === 'custom';
 
-  const headStats = useHeadStats(
-    period,
-    !isPlaceMode && !isCustom ? headId : undefined,
+  // 본점이 바뀌면 지점 선택 초기화
+  useEffect(() => {
+    setPlaceIdRaw(ALL);
+  }, [headIdRaw]);
+
+  // 전체 본점 모드: 각 본점별 거래량 합산
+  const allHeadsStats = useAllHeadsStats(period, isAllHeads && !isCustom);
+  const allHeadsStatsByDate = useAllHeadsStatsByDateRange(
+    startDate,
+    endDate,
+    isAllHeads && isCustom,
   );
+  const activeAllHeadsStats = isCustom ? allHeadsStatsByDate : allHeadsStats;
+
+  // 본점의 지점 목록 조회 (지점 드롭다운 + 차트용 ID 파악)
+  const headPlaceList = useHeadStats(period, !isCustom && !isAllHeads ? headId : undefined);
+  const headPlaceListByDate = useHeadStatsByDateRange(
+    startDate,
+    endDate,
+    isCustom && !isAllHeads ? headId : undefined,
+  );
+
+  // 현재 본점에 속한 지점 IDs (head API의 지점 목록은 정확함)
+  const currentPlaceIds = useMemo(() => {
+    const data = isCustom ? headPlaceListByDate.data : headPlaceList.data;
+    if (!data) return [] as number[];
+    return data.map((d) => d.place.id).filter((id): id is number => id in PLACES);
+  }, [headPlaceList.data, headPlaceListByDate.data, isCustom]);
+
+  // 실제 count는 개별 지점 API로 조회 (head API의 tradeCount 버그 우회)
+  const headStats = useFilteredPlaceStats(period, currentPlaceIds, !isPlaceMode && !isCustom && !isAllHeads);
   const placeStats = usePlaceStats(
     period,
     isPlaceMode && !isCustom ? placeId : undefined,
   );
-  const headStatsByDate = useHeadStatsByDateRange(
+  const headStatsByDate = useFilteredPlaceStatsByDateRange(
     startDate,
     endDate,
-    !isPlaceMode && isCustom ? headId : undefined,
+    currentPlaceIds,
+    !isPlaceMode && isCustom && !isAllHeads,
   );
   const placeStatsByDate = usePlaceStatsByDateRange(
     startDate,
@@ -93,7 +128,21 @@ export function StatsView() {
   const activeHeadStats = isCustom ? headStatsByDate : headStats;
   const activePlaceStats = isCustom ? placeStatsByDate : placeStats;
 
+  // 선택된 본점에 속하는 지점만 드롭다운에 표시
+  const filteredPlaceOptions = useMemo(
+    () => placeOptions.filter((opt) => currentPlaceIds.includes(Number(opt.value))),
+    [currentPlaceIds],
+  );
+
   const { labels, values, totalCount } = useMemo(() => {
+    if (isAllHeads && activeAllHeadsStats.data) {
+      const data = activeAllHeadsStats.data;
+      return {
+        labels: data.map((d) => d.head.name),
+        values: data.map((d) => d.tradeCount),
+        totalCount: data.reduce((sum, d) => sum + d.tradeCount, 0),
+      };
+    }
     if (isPlaceMode && activePlaceStats.data) {
       const name = PLACES[placeId!] ?? '선택 지점';
       return {
@@ -102,7 +151,7 @@ export function StatsView() {
         totalCount: activePlaceStats.data.count,
       };
     }
-    if (!isPlaceMode && activeHeadStats.data) {
+    if (!isAllHeads && !isPlaceMode && activeHeadStats.data) {
       const data = activeHeadStats.data;
       return {
         labels: data.map((d) => d.place.name),
@@ -111,21 +160,34 @@ export function StatsView() {
       };
     }
     return { labels: [] as string[], values: [] as number[], totalCount: 0 };
-  }, [isPlaceMode, activePlaceStats.data, activeHeadStats.data, placeId]);
+  }, [isAllHeads, isPlaceMode, activeAllHeadsStats.data, activePlaceStats.data, activeHeadStats.data, placeId]);
 
-  const loading = isPlaceMode
-    ? activePlaceStats.isLoading
-    : activeHeadStats.isLoading;
-  const fetching = isPlaceMode
-    ? activePlaceStats.isFetching
-    : activeHeadStats.isFetching;
+  const headListLoading = isCustom
+    ? headPlaceListByDate.isLoading
+    : headPlaceList.isLoading;
+
+  const loading = isAllHeads
+    ? activeAllHeadsStats.isLoading
+    : isPlaceMode
+      ? activePlaceStats.isLoading
+      : headListLoading || activeHeadStats.isLoading;
+  const fetching = isAllHeads
+    ? activeAllHeadsStats.isFetching
+    : isPlaceMode
+      ? activePlaceStats.isFetching
+      : activeHeadStats.isFetching;
+  const isError = isAllHeads
+    ? activeAllHeadsStats.isError
+    : isPlaceMode
+      ? activePlaceStats.isError
+      : activeHeadStats.isError;
   const hasData = values.length > 0 && values.some((v) => v > 0);
 
   const periodLabel = isCustom ? `${startDate}~${endDate}` : period;
   const handleExcel = () =>
     downloadTradeExcel(
       periodLabel,
-      headId,
+      headId ?? 0,
       labels.map((label, i) => ({ label, count: values[i] ?? 0 })),
     );
 
@@ -210,24 +272,26 @@ export function StatsView() {
         </div>
         <Select
           label="본점"
-          value={String(headId)}
-          onChange={(v) => setHeadId(Number(v))}
-          options={headOptions}
+          value={headIdRaw}
+          onChange={(v) => setHeadIdRaw(v || String(headOptions[0]?.value ?? 1))}
+          options={[{ value: ALL_HEADS, label: '전체 본점' }, ...headOptions]}
         />
-        <Select
-          label="지점"
-          value={placeIdRaw === ALL ? undefined : placeIdRaw}
-          onChange={(v) => setPlaceIdRaw(v || ALL)}
-          placeholder="본점 전체"
-          options={[{ value: '', label: '본점 전체' }, ...placeOptions]}
-        />
+        {!isAllHeads && (
+          <Select
+            label="지점"
+            value={placeIdRaw === ALL ? undefined : placeIdRaw}
+            onChange={(v) => setPlaceIdRaw(v || ALL)}
+            placeholder="본점 전체"
+            options={[{ value: '', label: '본점 전체' }, ...filteredPlaceOptions]}
+          />
+        )}
       </div>
 
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
             <h2 className="text-body1 text-gray-900">
-              {isPlaceMode ? '지점별 거래' : '본점 전체 거래'}
+              {isAllHeads ? '전체 본점 거래' : isPlaceMode ? '지점별 거래' : '본점 전체 거래'}
             </h2>
             <span className="rounded-full bg-main-100 px-2 py-0.5 text-caption font-semibold text-main-700">
               총 {formatNumber(totalCount)}건
@@ -250,6 +314,11 @@ export function StatsView() {
             <div className="flex h-[420px] items-center justify-center">
               <div className="h-48 w-48 animate-pulse rounded-full bg-gray-100" />
             </div>
+          ) : isError ? (
+            <EmptyState
+              title="통계를 불러오지 못했어요"
+              description="서버 오류가 발생했어요. 잠시 후 다시 시도해주세요."
+            />
           ) : !hasData ? (
             <EmptyState
               title="해당 조건의 데이터가 없어요"
