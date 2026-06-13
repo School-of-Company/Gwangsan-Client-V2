@@ -63,7 +63,7 @@ export function StatsView() {
         .slice(0, 10),
   );
   const [headId, setHeadId] = useState<number>(
-    Number(headOptions[0]?.value ?? 12),
+    Number(headOptions[0]?.value ?? 1),
   );
   const [placeIdRaw, setPlaceIdRaw] = useState<string>(ALL);
 
