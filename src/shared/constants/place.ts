@@ -13,10 +13,17 @@ export const PLACES: Record<number, string> = {
 } as const;
 
 export const HEADS: Record<number, string> = {
-  12: '광산구도시재생공동체센터',
-  13: '광산구자원봉사센터',
-  14: '광산구지역사회보장협의체',
-  15: '투게더광산나눔문화센터',
+  1: '광산구도시재생공동체센터',
+  2: '광산구자원봉사센터',
+  3: '광산구지역사회보장협의체',
+  4: '투게더광산나눔문화센터',
+} as const;
+
+export const HEAD_PLACES: Record<number, number[]> = {
+  1: [1, 2, 3, 4],   // 광산구도시재생공동체센터: 수완마을, 고실마을, 신가, 신창
+  2: [5, 6, 7, 8],   // 광산구자원봉사센터: 도산, 우산, 월곡1, 첨단2
+  3: [11, 9, 10],    // 광산구지역사회보장협의체: 평동, 월곡2, 하남
+  4: [],             // 투게더광산나눔문화센터
 } as const;
 
 export const placeOptions = Object.entries(PLACES).map(([value, label]) => ({

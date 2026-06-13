@@ -8,12 +8,14 @@ import {
   downloadTradeExcel,
   useHeadStats,
   usePlaceStats,
+  useHeadStatsByDateRange,
+  usePlaceStatsByDateRange,
   type StatsPeriod,
 } from '@/entities/stats';
 import { Card, CardBody, CardHeader } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Select } from '@/shared/ui/Select';
-import { PLACES, headOptions, placeOptions } from '@/shared/constants/place';
+import { PLACES, HEAD_PLACES, headOptions, placeOptions } from '@/shared/constants/place';
 import { formatNumber } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
 
@@ -46,29 +48,67 @@ const PALETTE = [
 const ALL = '__all__';
 
 export function StatsView() {
+  const [filterMode, setFilterMode] = useState<'period' | 'custom'>('period');
   const [period, setPeriod] = useState<StatsPeriod>('DAY');
+  const [startDate, setStartDate] = useState<string>(
+    () =>
+      new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 10),
+  );
+  const [endDate, setEndDate] = useState<string>(
+    () =>
+      new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 10),
+  );
   const [headId, setHeadId] = useState<number>(
-    Number(headOptions[0]?.value ?? 12),
+    Number(headOptions[0]?.value ?? 1),
   );
   const [placeIdRaw, setPlaceIdRaw] = useState<string>(ALL);
 
+  const filteredPlaceOptions = useMemo(() => {
+    const allowed = HEAD_PLACES[headId] ?? [];
+    return placeOptions.filter((opt) => allowed.includes(Number(opt.value)));
+  }, [headId]);
+
   const placeId = placeIdRaw !== ALL ? Number(placeIdRaw) : undefined;
   const isPlaceMode = !!placeId;
+  const isCustom = filterMode === 'custom';
 
-  const headStats = useHeadStats(period, !isPlaceMode ? headId : undefined);
-  const placeStats = usePlaceStats(period, placeId);
+  const headStats = useHeadStats(
+    period,
+    !isPlaceMode && !isCustom ? headId : undefined,
+  );
+  const placeStats = usePlaceStats(
+    period,
+    isPlaceMode && !isCustom ? placeId : undefined,
+  );
+  const headStatsByDate = useHeadStatsByDateRange(
+    startDate,
+    endDate,
+    !isPlaceMode && isCustom ? headId : undefined,
+  );
+  const placeStatsByDate = usePlaceStatsByDateRange(
+    startDate,
+    endDate,
+    isPlaceMode && isCustom ? placeId : undefined,
+  );
+
+  const activeHeadStats = isCustom ? headStatsByDate : headStats;
+  const activePlaceStats = isCustom ? placeStatsByDate : placeStats;
 
   const { labels, values, totalCount } = useMemo(() => {
-    if (isPlaceMode && placeStats.data) {
+    if (isPlaceMode && activePlaceStats.data) {
       const name = PLACES[placeId!] ?? '선택 지점';
       return {
         labels: [name],
-        values: [placeStats.data.count],
-        totalCount: placeStats.data.count,
+        values: [activePlaceStats.data.count],
+        totalCount: activePlaceStats.data.count,
       };
     }
-    if (!isPlaceMode && headStats.data) {
-      const data = headStats.data;
+    if (!isPlaceMode && activeHeadStats.data) {
+      const data = activeHeadStats.data;
       return {
         labels: data.map((d) => d.place.name),
         values: data.map((d) => d.tradeCount),
@@ -76,13 +116,36 @@ export function StatsView() {
       };
     }
     return { labels: [] as string[], values: [] as number[], totalCount: 0 };
-  }, [isPlaceMode, placeStats.data, headStats.data, placeId]);
+  }, [isPlaceMode, activePlaceStats.data, activeHeadStats.data, placeId]);
 
-  const loading = isPlaceMode ? placeStats.isLoading : headStats.isLoading;
-  const fetching = isPlaceMode ? placeStats.isFetching : headStats.isFetching;
+  const loading = isPlaceMode
+    ? activePlaceStats.isLoading
+    : activeHeadStats.isLoading;
+  const fetching = isPlaceMode
+    ? activePlaceStats.isFetching
+    : activeHeadStats.isFetching;
   const hasData = values.length > 0 && values.some((v) => v > 0);
 
-  const handleExcel = () => downloadTradeExcel(period, headId);
+  const periodLabel = isCustom ? `${startDate}~${endDate}` : period;
+  const handleExcel = () => {
+    if (loading || !hasData) return;
+    let rows: { label: string; count: number }[];
+    if (isPlaceMode) {
+      rows = labels.map((label, i) => ({ label, count: values[i] ?? 0 }));
+    } else {
+      const apiData = (isCustom ? headStatsByDate : headStats).data ?? [];
+      const apiMap = new Map(
+        apiData
+          .filter((d) => d.place?.id != null)
+          .map((d) => [d.place.id, d.tradeCount]),
+      );
+      rows = filteredPlaceOptions.map((opt) => ({
+        label: opt.label,
+        count: apiMap.get(Number(opt.value)) ?? 0,
+      }));
+    }
+    downloadTradeExcel(periodLabel, headId, rows);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -97,30 +160,79 @@ export function StatsView() {
         <div className="flex flex-col gap-1.5">
           <span className="text-label text-gray-700">기간</span>
           <div className="flex gap-1 rounded-xl bg-gray-100 p-1">
-            {STATS_PERIODS.map((p) => {
-              const active = p.value === period;
-              return (
-                <button
-                  key={p.value}
-                  type="button"
-                  onClick={() => setPeriod(p.value)}
-                  className={cn(
-                    'flex-1 rounded-lg px-3 py-2 text-body5 font-medium transition',
-                    active
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900',
-                  )}
-                >
-                  {p.label}
-                </button>
-              );
-            })}
+            <button
+              type="button"
+              onClick={() => setFilterMode('period')}
+              className={cn(
+                'flex-1 rounded-lg px-3 py-2 text-body5 font-medium transition',
+                filterMode === 'period'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900',
+              )}
+            >
+              기간 선택
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterMode('custom')}
+              className={cn(
+                'flex-1 rounded-lg px-3 py-2 text-body5 font-medium transition',
+                filterMode === 'custom'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900',
+              )}
+            >
+              직접 입력
+            </button>
           </div>
+          {filterMode === 'period' ? (
+            <div className="flex gap-1 rounded-xl bg-gray-100 p-1">
+              {STATS_PERIODS.map((p) => {
+                const active = p.value === period;
+                return (
+                  <button
+                    key={p.value}
+                    type="button"
+                    onClick={() => setPeriod(p.value)}
+                    className={cn(
+                      'flex-1 rounded-lg px-3 py-2 text-body5 font-medium transition',
+                      active
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900',
+                    )}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={startDate}
+                max={endDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-body5 text-gray-900 focus:border-main-500 focus:outline-none"
+              />
+              <span className="text-body5 text-gray-500">~</span>
+              <input
+                type="date"
+                value={endDate}
+                min={startDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-body5 text-gray-900 focus:border-main-500 focus:outline-none"
+              />
+            </div>
+          )}
         </div>
         <Select
           label="본점"
           value={String(headId)}
-          onChange={(v) => setHeadId(Number(v))}
+          onChange={(v) => {
+            setHeadId(Number(v));
+            setPlaceIdRaw(ALL);
+          }}
           options={headOptions}
         />
         <Select
@@ -128,7 +240,7 @@ export function StatsView() {
           value={placeIdRaw === ALL ? undefined : placeIdRaw}
           onChange={(v) => setPlaceIdRaw(v || ALL)}
           placeholder="본점 전체"
-          options={[{ value: '', label: '본점 전체' }, ...placeOptions]}
+          options={[{ value: '', label: '본점 전체' }, ...filteredPlaceOptions]}
         />
       </div>
 
