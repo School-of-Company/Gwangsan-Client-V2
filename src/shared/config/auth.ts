@@ -15,6 +15,7 @@ export const authConfig: AuthConfig = {
     '/profile',
     '/graph',
     '/gwangsan',
+    '/products',
   ],
   publicPages: ['/signin', '/password'],
 } as const;
