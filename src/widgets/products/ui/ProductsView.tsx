@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Loader2, Package, Trash2 } from 'lucide-react';
+import { Button } from '@zaemoru/react';
 import {
   filterProducts,
   productPlaceName,
@@ -42,14 +43,24 @@ export function ProductsView() {
     [mode, type],
   );
 
-  const { data, isLoading, isFetching } = useAdminProducts(filter);
+  const {
+    data,
+    isLoading,
+    isFetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useAdminProducts(filter);
+
+  const loaded = useMemo(() => data?.pages.flat() ?? [], [data]);
 
   const products = useMemo(
-    () => filterProducts(data ?? [], debouncedKeyword),
-    [data, debouncedKeyword],
+    () => filterProducts(loaded, debouncedKeyword),
+    [debouncedKeyword, loaded],
   );
 
-  const hasFilter = !!type || !!mode || !!debouncedKeyword.trim();
+  const keywordActive = !!debouncedKeyword.trim();
+  const hasFilter = !!type || !!mode || keywordActive;
 
   return (
     <div className="flex flex-col gap-6">
@@ -96,6 +107,12 @@ export function ProductsView() {
               <Loader2 size={14} className="animate-spin text-gray-400" />
             ) : null}
           </div>
+          {keywordActive && data ? (
+            // 서버에 검색 파라미터가 없어서, 지금까지 불러온 범위 안에서만 걸러져요.
+            <span className="text-caption text-gray-500">
+              불러온 {formatNumber(loaded.length)}건에서 검색 중
+            </span>
+          ) : null}
         </CardHeader>
 
         {isLoading ? (
@@ -147,6 +164,11 @@ export function ProductsView() {
                             거래 완료
                           </span>
                         )}
+                        {!product.isCompleted && product.isReserved && (
+                          <span className="shrink-0 rounded-full bg-sub2-100 px-2 py-0.5 text-caption text-sub2-700">
+                            예약중
+                          </span>
+                        )}
                       </div>
                       <p className="truncate text-caption text-gray-500">
                         {product.content}
@@ -191,6 +213,20 @@ export function ProductsView() {
             </table>
           </div>
         )}
+
+        {hasNextPage && !isLoading ? (
+          <div className="flex justify-center border-t border-gray-100 px-6 py-4">
+            <Button
+              variant="secondary"
+              size="medium"
+              onClick={() => void fetchNextPage()}
+              loading={isFetchingNextPage}
+              disabled={isFetchingNextPage}
+            >
+              더 보기
+            </Button>
+          </div>
+        ) : null}
       </Card>
 
       <DeleteProductDialog

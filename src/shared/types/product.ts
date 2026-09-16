@@ -55,5 +55,6 @@ export interface Product {
   member: ProductMember;
   images?: ProductImage[];
   isCompleted?: boolean;
+  isReserved?: boolean;
   createdAt?: string;
 }

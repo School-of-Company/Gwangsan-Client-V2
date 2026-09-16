@@ -1,8 +1,13 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
+  ADMIN_PRODUCT_PAGE_SIZE,
   deleteAdminProduct,
   listAdminProducts,
   type ProductFilter,
@@ -14,9 +19,16 @@ export const productKeys = {
 };
 
 export const useAdminProducts = (filter: ProductFilter = {}) =>
-  useQuery({
+  useInfiniteQuery({
     queryKey: productKeys.list(filter),
-    queryFn: () => listAdminProducts(filter),
+    queryFn: ({ pageParam }) =>
+      listAdminProducts({ ...filter, lastId: pageParam }),
+    initialPageParam: undefined as number | undefined,
+    // 마지막(가장 작은) id가 다음 페이지의 커서예요.
+    getNextPageParam: (lastPage) =>
+      lastPage.length < ADMIN_PRODUCT_PAGE_SIZE
+        ? undefined
+        : lastPage[lastPage.length - 1]?.id,
   });
 
 export const useDeleteAdminProduct = () => {
