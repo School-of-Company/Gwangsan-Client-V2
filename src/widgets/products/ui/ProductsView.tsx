@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Loader2, Package, Trash2 } from 'lucide-react';
+import { AlertCircle, Loader2, Package, Trash2 } from 'lucide-react';
 import { Button } from '@zaemoru/react';
+import { AxiosError } from 'axios';
 import {
   filterProducts,
   productPlaceName,
@@ -28,6 +29,21 @@ import { DeleteProductDialog } from './DeleteProductDialog';
 
 const ALL = '';
 
+const requestErrorMessage = (error: unknown): string => {
+  if (error instanceof AxiosError) {
+    const status = error.response?.status;
+    if (status === 401)
+      return '로그인이 만료되었어요. 다시 로그인해주세요. (401)';
+    if (status === 403) return '조회 권한이 없는 계정이에요. (403)';
+    if (status === 404) return '서버에 판매 목록 API가 없어요. (404)';
+    if (status) return `요청이 실패했어요. (${status})`;
+    if (error.code === 'ERR_NETWORK') {
+      return 'API 서버에 연결할 수 없어요. NEXT_PUBLIC_API_URL을 확인해주세요.';
+    }
+  }
+  return '잠시 후 다시 시도해주세요.';
+};
+
 export function ProductsView() {
   const [type, setType] = useState<string>(ALL);
   const [mode, setMode] = useState<string>(ALL);
@@ -47,6 +63,9 @@ export function ProductsView() {
     data,
     isLoading,
     isFetching,
+    isError,
+    error,
+    refetch,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -124,6 +143,22 @@ export function ProductsView() {
               />
             ))}
           </div>
+        ) : isError ? (
+          // 빈 목록과 요청 실패는 화면에서 구분돼야 해요.
+          <EmptyState
+            icon={<AlertCircle size={20} />}
+            title="게시글을 불러오지 못했어요"
+            description={requestErrorMessage(error)}
+            action={
+              <Button
+                variant="secondary"
+                size="medium"
+                onClick={() => void refetch()}
+              >
+                다시 시도
+              </Button>
+            }
+          />
         ) : products.length === 0 ? (
           <EmptyState
             icon={<Package size={20} />}
