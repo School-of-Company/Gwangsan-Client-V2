@@ -62,7 +62,7 @@ export interface TradeCancelAlert {
 
 export interface AlertBucket {
   reports?: ReportAlert[];
-  signups?: SignupAlert[];
+  signUps?: SignupAlert[];
   tradeCancels?: TradeCancelAlert[];
 }
 

@@ -29,7 +29,7 @@ export function AlertsPanel() {
   const cancel = useCancelTrade();
   const dismiss = useDismissAlert();
 
-  const signups = data?.signups ?? [];
+  const signups = data?.signUps ?? [];
   const reports = data?.reports ?? [];
   const tradeCancels = data?.tradeCancels ?? [];
   const total = signups.length + reports.length + tradeCancels.length;
