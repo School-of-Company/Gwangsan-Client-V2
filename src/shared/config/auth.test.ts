@@ -10,7 +10,7 @@ describe('auth config', () => {
 
   it('keeps protected admin routes explicit', () => {
     expect(authConfig.protectedPages).toEqual(
-      expect.arrayContaining(['/main', '/notice', '/gwangsan']),
+      expect.arrayContaining(['/main', '/notice', '/gwangsan', '/products']),
     );
     expect(authConfig.publicPages).toEqual(['/signin', '/password']);
   });
