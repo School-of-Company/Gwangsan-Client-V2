@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: '/main', label: '대시보드', match: ['/main', '/profile'] },
   { href: '/gwangsan', label: '광산 관리', match: ['/gwangsan'] },
   { href: '/products', label: '판매 목록 관리', match: ['/products'] },
+  { href: '/feedback', label: '문의 관리', match: ['/feedback'] },
   { href: '/notice', label: '공지', match: ['/notice', '/detail'] },
   { href: '/graph', label: '통계', match: ['/graph'] },
 ];
