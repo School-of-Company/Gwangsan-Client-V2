@@ -44,19 +44,17 @@ export const OS_TYPE_KOR: Record<OsType, string> = {
   ANDROID: 'Android',
 };
 
-export interface FeedbackMember {
-  memberId: number;
-  nickname: string;
-  placeName?: string;
-}
-
 export interface FeedbackImage {
   imageId: number;
   imageUrl: string;
 }
 
+// 작성자 정보는 member 객체가 아니라 최상위 필드로 내려와요. (AdminFeedbackResponse)
 export interface Feedback {
   feedbackId: number;
+  memberId: number;
+  nickname: string;
+  placeName?: string | null;
   type: FeedbackType;
   content: string;
   images?: FeedbackImage[];
@@ -69,6 +67,5 @@ export interface Feedback {
   answeredAt?: string | null;
   /** 답변한 관리자 닉네임 */
   answeredBy?: string | null;
-  member: FeedbackMember;
   createdAt: string;
 }

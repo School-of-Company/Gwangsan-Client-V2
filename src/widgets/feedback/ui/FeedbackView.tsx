@@ -209,11 +209,11 @@ export function FeedbackView() {
                       </p>
                     </td>
                     <td className="whitespace-nowrap px-3 py-3 text-body5 text-gray-700">
-                      {feedback.member.nickname}
-                      {feedback.member.placeName ? (
+                      {feedback.nickname}
+                      {feedback.placeName ? (
                         <span className="text-gray-500">
                           {' '}
-                          · {feedback.member.placeName}
+                          · {feedback.placeName}
                         </span>
                       ) : null}
                     </td>

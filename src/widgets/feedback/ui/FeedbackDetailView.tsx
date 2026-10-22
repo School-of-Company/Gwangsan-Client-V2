@@ -135,16 +135,16 @@ export function FeedbackDetailView({ id }: FeedbackDetailViewProps) {
                 </CardHeader>
                 <CardBody className="flex flex-col gap-2 py-4">
                   <p className="text-body4 font-semibold text-gray-900">
-                    {data.member.nickname}
+                    {data.nickname}
                   </p>
-                  {data.member.placeName ? (
+                  {data.placeName ? (
                     <p className="inline-flex items-center gap-1.5 text-body5 text-gray-600">
                       <MapPin size={14} />
-                      {data.member.placeName}
+                      {data.placeName}
                     </p>
                   ) : null}
                   <Link
-                    href={`/profile/${data.member.memberId}`}
+                    href={`/profile/${data.memberId}`}
                     className="mt-1 inline-flex items-center gap-0.5 self-start text-body5 font-medium text-main-700 hover:underline"
                   >
                     회원 상세 보기 <ChevronRight size={14} />
@@ -250,7 +250,7 @@ export function FeedbackDetailView({ id }: FeedbackDetailViewProps) {
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         onConfirm={handleSave}
-        nickname={data?.member.nickname ?? ''}
+        nickname={data?.nickname ?? ''}
         isEdit={!!data?.answer}
         pending={answerMutation.isPending}
       />
