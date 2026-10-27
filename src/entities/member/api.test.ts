@@ -15,7 +15,7 @@ describe('member api', () => {
     await listMembers({ headId: 12, placeId: 3, nickname: 'kim' });
 
     expect(getMock).toHaveBeenCalledWith('/member/all', {
-      params: { headId: 12, nickname: 'kim', placeId: 3 },
+      params: { headId: 12, nickname: 'kim', placeId: 3, placeName: '신가' },
     });
   });
 });

@@ -8,7 +8,7 @@ import { Card, CardBody } from '@/shared/ui/Card';
 import { RoleBadge } from '@/shared/ui/RoleBadge';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
 import { formatDate, formatNumber, formatPhone } from '@/shared/lib/format';
-import { placeLabel } from '@/shared/constants/place';
+import { memberPlaceLabel } from '@/shared/constants/place';
 import { RoleDialog } from './RoleDialog';
 import { StatusDialog } from './StatusDialog';
 
@@ -59,7 +59,7 @@ export function ProfileView({ memberId }: ProfileViewProps) {
                     <RoleBadge role={data.role} />
                     <StatusBadge status={data.status} />
                     <span className="text-body5 text-gray-600">
-                      {placeLabel(data.placeId)}
+                      {memberPlaceLabel(data)}
                     </span>
                   </div>
                 </div>

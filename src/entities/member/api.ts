@@ -1,5 +1,6 @@
 import { api } from '@/shared/lib/api';
 import type { MemberRole } from '@/shared/constants/role';
+import { PLACES } from '@/shared/constants/place';
 import type { Member, MemberStatus } from '@/shared/types/member';
 
 export interface MemberFilter {
@@ -12,7 +13,12 @@ export const listMembers = async (filter: MemberFilter): Promise<Member[]> => {
   const params: Record<string, string | number> = {};
   if (filter.headId) params['headId'] = filter.headId;
   if (filter.nickname) params['nickname'] = filter.nickname;
-  if (filter.placeId) params['placeId'] = filter.placeId;
+  if (filter.placeId) {
+    params['placeId'] = filter.placeId;
+    // 서버는 placeName으로 지점을 필터링해요.
+    const placeName = PLACES[filter.placeId];
+    if (placeName) params['placeName'] = placeName;
+  }
   const { data } = await api.get<Member[]>('/member/all', { params });
   return data;
 };
