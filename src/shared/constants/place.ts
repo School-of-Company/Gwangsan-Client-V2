@@ -41,3 +41,9 @@ export const placeLabel = (placeId?: number | string | null): string => {
   const n = typeof placeId === 'string' ? Number(placeId) : placeId;
   return PLACES[n] ?? HEADS[n] ?? '-';
 };
+
+// 서버 응답은 placeName(문자열)을 내려주므로 이를 우선 사용하고, placeId만 있으면 상수 표로 보완해요.
+export const memberPlaceLabel = (member: {
+  placeName?: string | null;
+  placeId?: number | null;
+}): string => member.placeName || placeLabel(member.placeId);

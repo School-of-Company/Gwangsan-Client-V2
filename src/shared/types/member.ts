@@ -31,4 +31,5 @@ export interface Member {
   joinedAt: string;
   gwangsan: number;
   placeId?: number;
+  placeName?: string | null;
 }

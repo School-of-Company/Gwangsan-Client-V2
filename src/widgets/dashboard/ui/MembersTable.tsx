@@ -10,7 +10,7 @@ import { RoleBadge } from '@/shared/ui/RoleBadge';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
 import { SearchInput } from '@/shared/ui/SearchInput';
 import { Select } from '@/shared/ui/Select';
-import { placeLabel, placeOptions } from '@/shared/constants/place';
+import { memberPlaceLabel, placeOptions } from '@/shared/constants/place';
 import { formatNumber, formatPhone } from '@/shared/lib/format';
 import { getRole } from '@/shared/lib/auth';
 import { useDebouncedValue } from '@/shared/lib/debounce';
@@ -146,7 +146,7 @@ export function MembersTable() {
                       {formatNumber(m.gwangsan ?? 0)}
                     </td>
                     <td className="px-6 py-3 text-body5 text-gray-700">
-                      {placeLabel(m.placeId)}
+                      {memberPlaceLabel(m)}
                     </td>
                   </tr>
                 ))}
