@@ -1,6 +1,6 @@
 import { api } from '@/shared/lib/api';
 import type { MemberRole } from '@/shared/constants/role';
-import { PLACES } from '@/shared/constants/place';
+import { isSamePlace, PLACES } from '@/shared/constants/place';
 import type { Member, MemberStatus } from '@/shared/types/member';
 
 export interface MemberFilter {
@@ -13,14 +13,13 @@ export const listMembers = async (filter: MemberFilter): Promise<Member[]> => {
   const params: Record<string, string | number> = {};
   if (filter.headId) params['headId'] = filter.headId;
   if (filter.nickname) params['nickname'] = filter.nickname;
-  if (filter.placeId) {
-    params['placeId'] = filter.placeId;
-    // 서버는 placeName으로 지점을 필터링해요.
-    const placeName = PLACES[filter.placeId];
-    if (placeName) params['placeName'] = placeName;
-  }
+  if (filter.placeId) params['placeId'] = filter.placeId;
   const { data } = await api.get<Member[]>('/member/all', { params });
-  return data;
+  // 서버는 placeName 완전 일치로만 필터링하고 placeId는 받지 않아요.
+  // 지점명 표기가 DB와 달라도 조회되도록 응답의 placeName을 정규화해서 직접 걸러요.
+  const placeName = filter.placeId ? PLACES[filter.placeId] : undefined;
+  if (!placeName) return data;
+  return data.filter((m) => isSamePlace(m.placeName, placeName));
 };
 
 export const getMember = async (memberId: string): Promise<Member> =>
