@@ -1,10 +1,16 @@
-import { isSamePlace, memberPlaceLabel, normalizePlaceName } from './place';
+import {
+  displayPlaceName,
+  isSamePlace,
+  memberPlaceLabel,
+  normalizePlaceName,
+} from './place';
 
 describe('memberPlaceLabel', () => {
-  it('prefers the placeName sent by the server', () => {
-    expect(memberPlaceLabel({ placeName: '수완마을', placeId: 2 })).toBe(
-      '수완마을',
+  it('prefers the placeName sent by the server, shown as the unified name', () => {
+    expect(memberPlaceLabel({ placeName: '신창동', placeId: 2 })).toBe(
+      '신창지점',
     );
+    expect(memberPlaceLabel({ placeName: '본부', placeId: 2 })).toBe('본부');
   });
 
   it('falls back to the placeId table, then to a dash', () => {
@@ -38,5 +44,18 @@ describe('isSamePlace', () => {
     expect(isSamePlace('월곡1', '월곡2')).toBe(false);
     expect(isSamePlace('신가', '신창지점')).toBe(false);
     expect(isSamePlace(null, '신창지점')).toBe(false);
+  });
+});
+
+describe('displayPlaceName', () => {
+  it('maps server place names to the unified place names', () => {
+    expect(displayPlaceName('신창동')).toBe('신창지점');
+    expect(displayPlaceName('수완마을')).toBe('수완지점');
+    expect(displayPlaceName('고실마을')).toBe('고실마을지점');
+    expect(displayPlaceName(' 신가동 ')).toBe('신가');
+  });
+
+  it('keeps unknown names as they are', () => {
+    expect(displayPlaceName('어딘가')).toBe('어딘가');
   });
 });
