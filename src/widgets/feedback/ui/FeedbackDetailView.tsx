@@ -20,6 +20,7 @@ import {
 } from '@/entities/feedback';
 import { BackHeader } from '@/shared/ui/BackHeader';
 import { Card, CardBody, CardHeader } from '@/shared/ui/Card';
+import { displayPlaceName } from '@/shared/constants/place';
 import { formatDateTime } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
 import {
@@ -140,7 +141,7 @@ export function FeedbackDetailView({ id }: FeedbackDetailViewProps) {
                   {data.placeName ? (
                     <p className="inline-flex items-center gap-1.5 text-body5 text-gray-600">
                       <MapPin size={14} />
-                      {data.placeName}
+                      {displayPlaceName(data.placeName)}
                     </p>
                   ) : null}
                   <Link

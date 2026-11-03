@@ -1,8 +1,10 @@
-import { placeLabel } from '@/shared/constants/place';
+import { displayPlaceName, placeLabel } from '@/shared/constants/place';
 import type { Product } from '@/shared/types/product';
 
 export const productPlaceName = (product: Product): string =>
-  product.member.placeName?.trim() || placeLabel(product.member.placeId);
+  (product.member.placeName?.trim() &&
+    displayPlaceName(product.member.placeName)) ||
+  placeLabel(product.member.placeId);
 
 /** 제목 / 작성자 / 동네를 한 번에 훑는 검색이에요. */
 export const filterProducts = (

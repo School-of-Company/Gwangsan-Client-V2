@@ -9,7 +9,7 @@ import { useAdminFeedbackList } from '@/entities/feedback';
 import { Card, CardHeader } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Select } from '@/shared/ui/Select';
-import { placeOptions } from '@/shared/constants/place';
+import { displayPlaceName, placeOptions } from '@/shared/constants/place';
 import { getRole } from '@/shared/lib/auth';
 import { formatDateTime, formatNumber } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
@@ -213,7 +213,7 @@ export function FeedbackView() {
                       {feedback.placeName ? (
                         <span className="text-gray-500">
                           {' '}
-                          · {feedback.placeName}
+                          · {displayPlaceName(feedback.placeName)}
                         </span>
                       ) : null}
                     </td>
