@@ -3,6 +3,7 @@ import {
   isSamePlace,
   memberPlaceLabel,
   normalizePlaceName,
+  placeOptions,
 } from './place';
 
 describe('memberPlaceLabel', () => {
@@ -52,10 +53,21 @@ describe('displayPlaceName', () => {
     expect(displayPlaceName('신창동')).toBe('신창지점');
     expect(displayPlaceName('수완마을')).toBe('수완지점');
     expect(displayPlaceName('고실마을')).toBe('고실마을지점');
-    expect(displayPlaceName(' 신가동 ')).toBe('신가');
+    expect(displayPlaceName(' 신창 동 ')).toBe('신창지점');
   });
 
   it('keeps unknown names as they are', () => {
     expect(displayPlaceName('어딘가')).toBe('어딘가');
+    expect(displayPlaceName('신가동')).toBe('신가동');
+  });
+});
+
+describe('placeOptions', () => {
+  it('only lists the unified places', () => {
+    expect(placeOptions.map((o) => o.label)).toEqual([
+      '수완지점',
+      '고실마을지점',
+      '신창지점',
+    ]);
   });
 });

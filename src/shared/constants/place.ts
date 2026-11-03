@@ -1,15 +1,7 @@
 export const PLACES: Record<number, string> = {
   1: '수완지점',
   2: '고실마을지점',
-  3: '신가',
   4: '신창지점',
-  5: '도산',
-  6: '우산',
-  7: '월곡1',
-  8: '첨단2',
-  9: '월곡2',
-  10: '하남',
-  11: '평동',
 } as const;
 
 export const HEADS: Record<number, string> = {
@@ -20,9 +12,9 @@ export const HEADS: Record<number, string> = {
 } as const;
 
 export const HEAD_PLACES: Record<number, number[]> = {
-  1: [1, 2, 3, 4], // 광산구도시재생공동체센터: 수완지점, 고실마을지점, 신가, 신창지점
-  2: [5, 6, 7, 8], // 광산구자원봉사센터: 도산, 우산, 월곡1, 첨단2
-  3: [11, 9, 10], // 광산구지역사회보장협의체: 평동, 월곡2, 하남
+  1: [1, 2, 4], // 광산구도시재생공동체센터: 수완지점, 고실마을지점, 신창지점
+  2: [], // 광산구자원봉사센터
+  3: [], // 광산구지역사회보장협의체
   4: [], // 투게더광산나눔문화센터
 } as const;
 
