@@ -19,7 +19,7 @@ describe('filterProducts', () => {
       id: 2,
       title: '수학 과외 할 수 있어요',
       type: 'SERVICE',
-      member: { memberId: 2, nickname: '하남이', placeId: 10 },
+      member: { memberId: 2, nickname: '하남이', placeId: 4 },
     }),
   ];
 
@@ -34,7 +34,7 @@ describe('filterProducts', () => {
   });
 
   it('resolves the place name from placeId when the API omits it', () => {
-    expect(productPlaceName(products[1]!)).toBe('하남');
-    expect(filterProducts(products, '하남').map((p) => p.id)).toEqual([2]);
+    expect(productPlaceName(products[1]!)).toBe('신창지점');
+    expect(filterProducts(products, '신창').map((p) => p.id)).toEqual([2]);
   });
 });

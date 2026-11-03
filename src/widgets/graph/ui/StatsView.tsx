@@ -15,7 +15,13 @@ import {
 import { Card, CardBody, CardHeader } from '@/shared/ui/Card';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { Select } from '@/shared/ui/Select';
-import { PLACES, HEAD_PLACES, headOptions, placeOptions } from '@/shared/constants/place';
+import {
+  PLACES,
+  HEAD_PLACES,
+  displayPlaceName,
+  headOptions,
+  placeOptions,
+} from '@/shared/constants/place';
 import { formatNumber } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
 
@@ -110,7 +116,7 @@ export function StatsView() {
     if (!isPlaceMode && activeHeadStats.data) {
       const data = activeHeadStats.data;
       return {
-        labels: data.map((d) => d.place.name),
+        labels: data.map((d) => displayPlaceName(d.place.name)),
         values: data.map((d) => d.tradeCount),
         totalCount: data.reduce((sum, d) => sum + d.tradeCount, 0),
       };

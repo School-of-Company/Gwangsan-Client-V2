@@ -28,10 +28,10 @@ describe('member api', () => {
   it('passes head, place, and nickname filters without an exact placeName', async () => {
     getMock.mockResolvedValue({ data: [] });
 
-    await listMembers({ headId: 12, placeId: 3, nickname: 'kim' });
+    await listMembers({ headId: 12, placeId: 2, nickname: 'kim' });
 
     expect(getMock).toHaveBeenCalledWith('/member/all', {
-      params: { headId: 12, nickname: 'kim', placeId: 3 },
+      params: { headId: 12, nickname: 'kim', placeId: 2 },
     });
   });
 
